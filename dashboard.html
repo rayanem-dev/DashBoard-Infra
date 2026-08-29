@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tableau de Bord – Avancement des Chantiers – Division Infrastructure RNS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  :root {
+    --orange-main: #E85D04; --orange-light: #F48C06; --gray-dark: #1A1A2E; --gray-mid: #2D2D44;
+    --gray-light: #F8F9FA; --white: #FFFFFF; --text-dark: #1C1C1C; --text-muted: #6B7280;
+    --border: #E5E7EB; --green: #16A34A; --blue: #2563EB; --teal: #0D9488; --red: #DC2626;
+    --shadow-card: 0 4px 20px rgba(232,93,4,0.10), 0 1px 4px rgba(0,0,0,0.06);
+    --shadow-hover: 0 8px 32px rgba(232,93,4,0.22), 0 2px 8px rgba(0,0,0,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #F5F5F0; color: var(--text-dark); min-height: 100vh; }
+  header { background: linear-gradient(135deg, #1A1A2E 0%, #16213E 60%, #0F3460 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,0.4); }
+  .header-inner { max-width: 1400px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-circle { width: 52px; height: 52px; background: linear-gradient(135deg, var(--orange-main), var(--orange-light)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: white; box-shadow: 0 4px 14px rgba(232,93,4,0.5); }
+  .logo-text h1 { font-size: 18px; font-weight: 700; color: white; }
+  .logo-text p { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--gray-dark); text-transform: uppercase; letter-spacing: 0.6px; margin: 32px 0 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title:first-child { margin-top: 0; }
+  .section-title .unit-tag { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: none; background: var(--gray-light); padding: 2px 8px; border-radius: 20px; letter-spacing: 0; }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 640px) { .stats-row { grid-template-columns: 1fr; } }
+  .stat-card { background: var(--white); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow-card); border: 1px solid var(--border); }
+  .stat-card .lbl { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px; }
+  .stat-card .val { font-size: 21px; font-weight: 800; color: var(--gray-dark); }
+  .stat-card.realise .val { color: var(--orange-main); }
+  .stat-card.rar .val { color: var(--text-muted); }
+  .global-card { background: var(--white); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-card); border: 1px solid var(--border); display: flex; align-items: center; gap: 28px; margin-top: 14px; flex-wrap: wrap; }
+  .donut-wrap { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+  .donut-wrap svg { transform: rotate(-90deg); }
+  .donut-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .donut-pct .num { font-size: 26px; font-weight: 800; color: var(--gray-dark); }
+  .donut-pct .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .global-info { flex: 1; min-width: 200px; }
+  .global-info h3 { font-size: 16px; font-weight: 700; color: var(--gray-dark); margin-bottom: 10px; }
+  .progress-bar-bg { height: 12px; border-radius: 8px; background: var(--gray-light); overflow: hidden; border: 1px solid var(--border); }
+  .progress-bar-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--orange-main), var(--orange-light)); transition: width 0.6s ease; }
+  .global-info .sub { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .chantier-card { background: var(--white); border-radius: 18px; padding: 20px 22px; box-shadow: var(--shadow-card); border: 1px solid var(--border); margin-bottom: 16px; cursor: pointer; transition: box-shadow 0.2s; }
+  .chantier-card:hover { box-shadow: var(--shadow-hover); }
+  .chantier-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .chantier-head h3 { font-size: 16px; font-weight: 700; color: var(--gray-dark); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .chantier-pct { font-size: 20px; font-weight: 800; color: var(--orange-main); }
+  .chantier-bar-bg { height: 8px; border-radius: 6px; background: var(--gray-light); margin-top: 10px; overflow: hidden; }
+  .chantier-bar-fill { height: 100%; border-radius: 6px; background: var(--orange-main); }
+  .chantier-meta { font-size: 12px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .chevron { transition: transform 0.2s; color: var(--text-muted); font-size: 13px; display: inline-block; }
+  .chantier-card.open .chevron { transform: rotate(180deg); }
+  .lines-wrap { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .chantier-card.open .lines-wrap { max-height: 900px; margin-top: 16px; }
+  .line-item { padding: 10px 0; border-top: 1px solid var(--border); }
+  .line-item .li-top { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; margin-bottom: 6px; }
+  .line-item .li-name { color: var(--text-dark); font-weight: 500; flex: 1; }
+  .line-item .li-pct { font-weight: 700; color: var(--gray-mid); white-space: nowrap; }
+  .line-bar-bg { height: 5px; border-radius: 4px; background: var(--gray-light); overflow: hidden; }
+  .line-bar-fill { height: 100%; border-radius: 4px; background: var(--blue); }
+  .line-item .li-nums { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .sub-metric { padding: 12px 0; border-top: 1px solid var(--border); }
+  .sub-metric .sm-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .sub-metric .sm-name { font-weight: 600; color: var(--text-dark); }
+  .sub-metric .sm-pct { font-weight: 700; color: var(--teal); }
+  .sub-metric .sm-nums { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .loading, .error-box { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+  .error-box { color: var(--red); }
+  .badge-status { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .badge-ontrack { background: #DCFCE7; color: var(--green); }
+  .badge-late { background: #FEE2E2; color: var(--red); }
+  .badge-start { background: #FEF3C7; color: #B45309; }
+  .badge-unit { background: var(--gray-light); color: var(--text-muted); font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-circle">IN</div>
+      <div class="logo-text">
+        <h1>Avancement des Chantiers</h1>
+        <p>Division Infrastructure — RNS</p>
+      </div>
+    </div>
+    <a href="index.html" style="text-decoration:none;background:rgba(255,255,255,0.1);color:white;font-size:12px;font-weight:700;padding:9px 16px;border-radius:10px;white-space:nowrap;border:1px solid rgba(255,255,255,0.2);">← Accueil</a>
+  </div>
+</header>
+<main>
+  <div id="content" class="loading">Chargement des données…</div>
+</main>
+<script>
+// ─────────────────────────────────────────────
+// CONFIGURATION DES CHANTIERS
+// type "boq"       = bordereau de prix (1 ligne ou plus), montants DA
+// type "journal"   = suivi quotidien par volumes (m3)
+// type "portfolio" = plusieurs chantiers résumés dans UN SEUL csv (colonnes: Nom, Montant_Prevu, Montant_Realise)
+// Laisse csvUrl vide ("") pour un chantier pas encore branché : il sera simplement ignoré.
+// ─────────────────────────────────────────────
+const CHANTIERS = [
+  { nom: "Les Abris", type: "boq",
+    csvUrl: "https://docs.google.com/spreadsheets/d/12LYR4984-NDKrKngTXDAkRJne0zpE_OF3836f-aYlfw/export?format=csv&gid=926886126" },
+
+  { nom: "Bassin CPF — Physique (Plate-forme/Talus)", type: "journal",
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTr_x5K-Xe1cDNL5zIxa3-KaWhqvU9uzUUM4zYtjvQRmNW9VdT9zgvDCzRWOHpsg/pub?gid=1697217269&single=true&output=csv" },
+
+  { nom: "Bassin CPF — Financier (GCB)", type: "boq",
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1157217160&single=true&output=csv" }, // onglet Export_Dashboard de 'attch valor' dans VER01
+
+  { nom: "Routes & ATIA (portefeuille)", type: "portfolio",
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1018327631&single=true&output=csv" }, // un seul onglet Export_Portfolio_Routes dans VER01, colonnes Nom/Montant_Prevu/Montant_Realise
+
+  { nom: "MCM", type: "boq", csvUrl: "" },
+  { nom: "Mosquée", type: "boq", csvUrl: "" },
+  { nom: "Piscines", type: "boq", csvUrl: "" },
+  { nom: "Studio", type: "boq", csvUrl: "" },
+  { nom: "Stades", type: "boq", csvUrl: "" },
+];
+
+// ─────────────────────────────────────────────
+// Utilitaires
+// ─────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i + 1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (field !== '' || row.length) { row.push(field); rows.push(row); row = []; field = ''; }
+        if (c === '\r' && next === '\n') i++;
+      } else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(f => f.trim() !== ''));
+}
+
+function parseNumberFR(str) {
+  if (!str) return 0;
+  const cleaned = str.toString().replace(/\s/g, '').replace('%', '').replace(',', '.');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatDA(n) { return Math.round(n).toLocaleString('fr-FR').replace(/,/g, ' ') + ' DA'; }
+function formatM3(n) { return Math.round(n).toLocaleString('fr-FR').replace(/,/g, ' ') + ' m³'; }
+
+function statusBadge(pct) {
+  if (pct >= 70) return '<span class="badge-status badge-ontrack">Bien avancé</span>';
+  if (pct >= 20) return '<span class="badge-status badge-late">En cours</span>';
+  return '<span class="badge-status badge-start">Démarrage</span>';
+}
+
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('fetch failed: ' + url);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+// ─────────────────────────────────────────────
+// Chargement — type "boq"
+// ─────────────────────────────────────────────
+async function loadChantierBOQ(chantier) {
+  const rows = await fetchCSV(chantier.csvUrl);
+  const header = rows[0].map(h => h.trim());
+  const idx = {
+    designation: header.indexOf('Designation'), unite: header.indexOf('Unite'),
+    qtePrevue: header.indexOf('Qte_Prevue'), montantPrevu: header.indexOf('Montant_Prevu'),
+    qteRealisee: header.indexOf('Qte_Realisee'), montantRealise: header.indexOf('Montant_Realise'),
+  };
+  const lignes = rows.slice(1).map(r => {
+    const montantPrevu = parseNumberFR(r[idx.montantPrevu]);
+    const montantRealise = parseNumberFR(r[idx.montantRealise]);
+    return {
+      designation: (r[idx.designation] || '').trim(), unite: (r[idx.unite] || '').trim(),
+      qtePrevue: parseNumberFR(r[idx.qtePrevue]), montantPrevu,
+      qteRealisee: parseNumberFR(r[idx.qteRealisee]), montantRealise,
+      pct: montantPrevu > 0 ? Math.min(100, (montantRealise / montantPrevu) * 100) : 0,
+    };
+  }).filter(l => l.designation && l.montantPrevu > 0);
+
+  const totalPrevu = lignes.reduce((s, l) => s + l.montantPrevu, 0);
+  const totalRealise = lignes.reduce((s, l) => s + l.montantRealise, 0);
+  return { nom: chantier.nom, type: 'boq', lignes, totalPrevu, totalRealise, pct: totalPrevu > 0 ? (totalRealise / totalPrevu) * 100 : 0 };
+}
+
+// ─────────────────────────────────────────────
+// Chargement — type "journal" (suivi quotidien en volumes)
+// ─────────────────────────────────────────────
+async function loadChantierJournal(chantier) {
+  const rows = await fetchCSV(chantier.csvUrl);
+  const header = rows[0].map(h => h.trim());
+  const idx = {
+    date: header.indexOf('Date'), pfRealise: header.indexOf('PF_Realise'), pfPrevu: header.indexOf('PF_Prevu'),
+    pfTaux: header.indexOf('PF_Taux'), talusRealise: header.indexOf('Talus_Realise'), talusPrevu: header.indexOf('Talus_Prevu'),
+    talusTaux: header.indexOf('Talus_Taux'), totalRealise: header.indexOf('Total_Realise'),
+    totalPrevu: header.indexOf('Total_Prevu'), tauxGlobal: header.indexOf('Taux_Global'),
+  };
+  const r = rows[1];
+  return {
+    nom: chantier.nom, type: 'journal', date: (r[idx.date] || '').trim(),
+    pfRealise: parseNumberFR(r[idx.pfRealise]), pfPrevu: parseNumberFR(r[idx.pfPrevu]), pfTaux: parseNumberFR(r[idx.pfTaux]),
+    talusRealise: parseNumberFR(r[idx.talusRealise]), talusPrevu: parseNumberFR(r[idx.talusPrevu]), talusTaux: parseNumberFR(r[idx.talusTaux]),
+    totalRealise: parseNumberFR(r[idx.totalRealise]), totalPrevu: parseNumberFR(r[idx.totalPrevu]), pct: parseNumberFR(r[idx.tauxGlobal]),
+  };
+}
+
+// ─────────────────────────────────────────────
+// Chargement — type "portfolio" (plusieurs chantiers dans 1 csv)
+// ─────────────────────────────────────────────
+async function loadPortfolio(chantier) {
+  const rows = await fetchCSV(chantier.csvUrl);
+  const header = rows[0].map(h => h.trim());
+  const idx = { nom: header.indexOf('Nom'), montantPrevu: header.indexOf('Montant_Prevu'), montantRealise: header.indexOf('Montant_Realise') };
+  return rows.slice(1).map(r => {
+    const totalPrevu = parseNumberFR(r[idx.montantPrevu]);
+    const totalRealise = parseNumberFR(r[idx.montantRealise]);
+    return {
+      nom: (r[idx.nom] || '').trim(), type: 'boq',
+      lignes: [{ designation: 'Ensemble des travaux', unite: 'FF', qtePrevue: 1, montantPrevu: totalPrevu,
+                 qteRealisee: totalPrevu > 0 ? totalRealise / totalPrevu : 0, montantRealise: totalRealise,
+                 pct: totalPrevu > 0 ? Math.min(100, (totalRealise / totalPrevu) * 100) : 0 }],
+      totalPrevu, totalRealise, pct: totalPrevu > 0 ? (totalRealise / totalPrevu) * 100 : 0,
+    };
+  }).filter(c => c.nom && c.totalPrevu > 0);
+}
+
+function renderDonut(pct) {
+  const r = 52, c = 2 * Math.PI * r;
+  const offset = c - (Math.min(100, pct) / 100) * c;
+  return `<div class="donut-wrap"><svg width="130" height="130" viewBox="0 0 130 130">
+      <circle cx="65" cy="65" r="${r}" fill="none" stroke="#F0F0EC" stroke-width="14"/>
+      <circle cx="65" cy="65" r="${r}" fill="none" stroke="#E85D04" stroke-width="14" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"/>
+    </svg><div class="donut-pct"><span class="num">${pct.toFixed(0)}%</span><span class="lbl">Réalisé</span></div></div>`;
+}
+
+function renderChantierCardBOQ(data, i) {
+  const lines = data.lignes.map(l => `
+    <div class="line-item">
+      <div class="li-top"><span class="li-name">${l.designation}</span><span class="li-pct">${l.pct.toFixed(0)}%</span></div>
+      <div class="line-bar-bg"><div class="line-bar-fill" style="width:${l.pct}%"></div></div>
+      <div class="li-nums">${l.qteRealisee.toLocaleString('fr-FR')} / ${l.qtePrevue.toLocaleString('fr-FR')} ${l.unite} — ${formatDA(l.montantRealise)} / ${formatDA(l.montantPrevu)}</div>
+    </div>`).join('');
+  return `<div class="chantier-card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit">Bordereau (DA)</span> ${statusBadge(data.pct)}</h3>
+        <div style="display:flex;align-items:center;gap:10px"><span class="chantier-pct">${data.pct.toFixed(0)}%</span><span class="chevron">▾</span></div></div>
+      <div class="chantier-bar-bg"><div class="chantier-bar-fill" style="width:${data.pct}%"></div></div>
+      <div class="chantier-meta"><span>Prévu : ${formatDA(data.totalPrevu)}</span><span>Réalisé : ${formatDA(data.totalRealise)}</span><span>${data.lignes.length} poste${data.lignes.length>1?'s':''} suivi${data.lignes.length>1?'s':''}</span></div>
+      <div class="lines-wrap">${lines}</div></div>`;
+}
+
+function renderChantierCardJournal(data, i) {
+  const sub = `
+    <div class="sub-metric"><div class="sm-top"><span class="sm-name">Plate-forme</span><span class="sm-pct">${data.pfTaux.toFixed(0)}%</span></div>
+      <div class="line-bar-bg"><div class="line-bar-fill" style="width:${data.pfTaux}%;background:var(--teal)"></div></div>
+      <div class="sm-nums">${formatM3(data.pfRealise)} / ${formatM3(data.pfPrevu)}</div></div>
+    <div class="sub-metric"><div class="sm-top"><span class="sm-name">Talus</span><span class="sm-pct">${data.talusTaux.toFixed(0)}%</span></div>
+      <div class="line-bar-bg"><div class="line-bar-fill" style="width:${data.talusTaux}%;background:var(--teal)"></div></div>
+      <div class="sm-nums">${formatM3(data.talusRealise)} / ${formatM3(data.talusPrevu)}</div></div>`;
+  return `<div class="chantier-card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit">Journal (m³)</span> ${statusBadge(data.pct)}</h3>
+        <div style="display:flex;align-items:center;gap:10px"><span class="chantier-pct">${data.pct.toFixed(0)}%</span><span class="chevron">▾</span></div></div>
+      <div class="chantier-bar-bg"><div class="chantier-bar-fill" style="width:${data.pct}%"></div></div>
+      <div class="chantier-meta"><span>Réalisé total : ${formatM3(data.totalRealise)} / ${formatM3(data.totalPrevu)}</span><span>Dernière saisie : ${data.date || '—'}</span></div>
+      <div class="lines-wrap">${sub}</div></div>`;
+}
+
+function toggleCard(i) { document.getElementById('card-' + i).classList.toggle('open'); }
+
+async function init() {
+  const content = document.getElementById('content');
+  try {
+    const active = CHANTIERS.filter(c => c.csvUrl && c.csvUrl.trim() !== '');
+    const loaded = await Promise.all(active.map(c => {
+      if (c.type === 'journal') return loadChantierJournal(c);
+      if (c.type === 'portfolio') return loadPortfolio(c);
+      return loadChantierBOQ(c);
+    }));
+    // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
+    const results = loaded.flat();
+
+    const boqResults = results.filter(r => r.type === 'boq');
+    const journalResults = results.filter(r => r.type === 'journal');
+    const globalPct = results.length > 0 ? results.reduce((s, r) => s + r.pct, 0) / results.length : 0;
+
+    let html = `<div class="section-title">Vue globale</div>`;
+
+    if (boqResults.length > 0) {
+      const totalPrevu = boqResults.reduce((s, r) => s + r.totalPrevu, 0);
+      const totalRealise = boqResults.reduce((s, r) => s + r.totalRealise, 0);
+      html += `<div class="section-title" style="margin-top:0"><span class="unit-tag">Chantiers en bordereau — DA</span></div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="lbl">Montant prévu</div><div class="val">${formatDA(totalPrevu)}</div></div>
+          <div class="stat-card realise"><div class="lbl">Montant réalisé</div><div class="val">${formatDA(totalRealise)}</div></div>
+          <div class="stat-card rar"><div class="lbl">Reste à réaliser</div><div class="val">${formatDA(totalPrevu-totalRealise)}</div></div>
+        </div>`;
+    }
+    if (journalResults.length > 0) {
+      const totalPrevu = journalResults.reduce((s, r) => s + r.totalPrevu, 0);
+      const totalRealise = journalResults.reduce((s, r) => s + r.totalRealise, 0);
+      html += `<div class="section-title"><span class="unit-tag">Chantiers en volumes — m³</span></div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="lbl">Volume prévu</div><div class="val">${formatM3(totalPrevu)}</div></div>
+          <div class="stat-card realise"><div class="lbl">Volume réalisé</div><div class="val">${formatM3(totalRealise)}</div></div>
+          <div class="stat-card rar"><div class="lbl">Reste à réaliser</div><div class="val">${formatM3(totalPrevu-totalRealise)}</div></div>
+        </div>`;
+    }
+
+    html += `<div class="global-card">${renderDonut(globalPct)}
+        <div class="global-info"><h3>Avancement global — ${results.length} chantier${results.length > 1 ? 's' : ''}</h3>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(100,globalPct)}%"></div></div>
+          <div class="sub">Moyenne simple entre chantiers (chaque chantier compte pour 1)</div></div></div>
+      <div class="section-title">Détail par chantier</div>`;
+
+    html += results.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, i) : renderChantierCardBOQ(r, i)).join('');
+
+    content.className = '';
+    content.innerHTML = html;
+  } catch (e) {
+    content.className = 'error-box';
+    content.innerHTML = "Impossible de charger les données. Vérifie ta connexion internet ou que les liens Google Sheets sont bien publiés.<br><br><small>" + e.message + "</small>";
+  }
+}
+init();
+</script>
+</body>
+</html>
