@@ -88,7 +88,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <a href="Suivi_Chantier.html" style="text-decoration:none;background:rgba(255,255,255,0.1);color:white;font-size:12px;font-weight:700;padding:9px 16px;border-radius:10px;white-space:nowrap;border:1px solid rgba(255,255,255,0.2);">🗂️ Suivi Chantier</a>
-      <a href="index.html" style="text-decoration:none;background:rgba(255,255,255,0.1);color:white;font-size:12px;font-weight:700;padding:9px 16px;border-radius:10px;white-space:nowrap;border:1px solid rgba(255,255,255,0.2);">← Accueil</a>
+      <a href="Index.html" style="text-decoration:none;background:rgba(255,255,255,0.1);color:white;font-size:12px;font-weight:700;padding:9px 16px;border-radius:10px;white-space:nowrap;border:1px solid rgba(255,255,255,0.2);">← Accueil</a>
     </div>
   </div>
 </header>
@@ -121,6 +121,18 @@ const CHANTIERS = [
   { nom: "Piscines", type: "boq", csvUrl: "" },
   { nom: "Studio", type: "boq", csvUrl: "" },
   { nom: "Stades", type: "boq", csvUrl: "" },
+
+  // ── Service Travaux Entretien (hors Division Infrastructure) ──
+  // type "kpi" = le tableau de bord source calcule déjà lui-même son propre
+  // pourcentage d'avancement sur une ligne fixe ; on relit juste Prévu/Réalisé
+  // à un emplacement connu du tableau, sans reparser tout le bordereau.
+  { nom: "Forage RNS — 3 puits d'eau", type: "kpi", service: "Travaux Entretien",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1809509458",
+    cell: { row: 4, prevuCol: 0, realiseCol: 3 } },
+
+  { nom: "Terrassement RNS (36 mois)", type: "kpi", service: "Travaux Entretien",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=2117456852",
+    cell: { row: 3, prevuCol: 1, realiseCol: 4 } },
 ];
 
 // ─────────────────────────────────────────────
@@ -239,6 +251,24 @@ async function loadPortfolio(chantier) {
   }).filter(c => c.nom && c.totalPrevu > 0);
 }
 
+// ─────────────────────────────────────────────
+// Chargement — type "kpi" (le tableau source a déjà calculé Prévu/Réalisé
+// sur une ligne fixe connue — ex. tableaux de bord Forage / Terrassement)
+// ─────────────────────────────────────────────
+async function loadKPI(chantier) {
+  const rows = await fetchCSV(chantier.csvUrl);
+  const r = rows[chantier.cell.row] || [];
+  const totalPrevu = parseNumberFR(r[chantier.cell.prevuCol]);
+  const totalRealise = parseNumberFR(r[chantier.cell.realiseCol]);
+  return {
+    nom: chantier.nom, type: 'kpi', service: chantier.service || '',
+    lignes: [{ designation: 'Ensemble du contrat', unite: 'FF', qtePrevue: 1, montantPrevu: totalPrevu,
+               qteRealisee: totalPrevu > 0 ? totalRealise / totalPrevu : 0, montantRealise: totalRealise,
+               pct: totalPrevu > 0 ? Math.min(100, (totalRealise / totalPrevu) * 100) : 0 }],
+    totalPrevu, totalRealise, pct: totalPrevu > 0 ? (totalRealise / totalPrevu) * 100 : 0,
+  };
+}
+
 function renderDonut(pct) {
   const r = 52, c = 2 * Math.PI * r;
   const offset = c - (Math.min(100, pct) / 100) * c;
@@ -261,6 +291,15 @@ function renderChantierCardBOQ(data, i) {
       <div class="chantier-bar-bg"><div class="chantier-bar-fill" style="width:${data.pct}%"></div></div>
       <div class="chantier-meta"><span>Prévu : ${formatDA(data.totalPrevu)}</span><span>Réalisé : ${formatDA(data.totalRealise)}</span><span>${data.lignes.length} poste${data.lignes.length>1?'s':''} suivi${data.lignes.length>1?'s':''}</span></div>
       <div class="lines-wrap">${lines}</div></div>`;
+}
+
+function renderChantierCardKPI(data, i) {
+  return `<div class="chantier-card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit" style="background:#EEF2FF;color:#4338CA;">Service Travaux Entretien</span> ${statusBadge(data.pct)}</h3>
+        <div style="display:flex;align-items:center;gap:10px"><span class="chantier-pct">${data.pct.toFixed(0)}%</span><span class="chevron">▾</span></div></div>
+      <div class="chantier-bar-bg"><div class="chantier-bar-fill" style="width:${data.pct}%"></div></div>
+      <div class="chantier-meta"><span>Prévu : ${formatDA(data.totalPrevu)}</span><span>Réalisé : ${formatDA(data.totalRealise)}</span><span>Avancement calculé directement depuis le tableau de bord source</span></div>
+      <div class="lines-wrap"></div></div>`;
 }
 
 function renderChantierCardJournal(data, i) {
@@ -288,6 +327,7 @@ async function init() {
     const loaded = await Promise.all(active.map(c => {
       if (c.type === 'journal') return loadChantierJournal(c);
       if (c.type === 'portfolio') return loadPortfolio(c);
+      if (c.type === 'kpi') return loadKPI(c);
       return loadChantierBOQ(c);
     }));
     // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
@@ -295,6 +335,7 @@ async function init() {
 
     const boqResults = results.filter(r => r.type === 'boq');
     const journalResults = results.filter(r => r.type === 'journal');
+    const kpiResults = results.filter(r => r.type === 'kpi');
     const globalPct = results.length > 0 ? results.reduce((s, r) => s + r.pct, 0) / results.length : 0;
 
     let html = `<div class="section-title">Vue globale</div>`;
@@ -319,14 +360,30 @@ async function init() {
           <div class="stat-card rar"><div class="lbl">Reste à réaliser</div><div class="val">${formatM3(totalPrevu-totalRealise)}</div></div>
         </div>`;
     }
+    if (kpiResults.length > 0) {
+      const totalPrevu = kpiResults.reduce((s, r) => s + r.totalPrevu, 0);
+      const totalRealise = kpiResults.reduce((s, r) => s + r.totalRealise, 0);
+      html += `<div class="section-title"><span class="unit-tag">Service Travaux Entretien — DZD</span></div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="lbl">Budget contractuel</div><div class="val">${formatDA(totalPrevu)}</div></div>
+          <div class="stat-card realise"><div class="lbl">Cumul réalisé</div><div class="val">${formatDA(totalRealise)}</div></div>
+          <div class="stat-card rar"><div class="lbl">Reste à réaliser</div><div class="val">${formatDA(totalPrevu-totalRealise)}</div></div>
+        </div>`;
+    }
 
     html += `<div class="global-card">${renderDonut(globalPct)}
         <div class="global-info"><h3>Avancement global — ${results.length} chantier${results.length > 1 ? 's' : ''}</h3>
           <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(100,globalPct)}%"></div></div>
           <div class="sub">Moyenne simple entre chantiers (chaque chantier compte pour 1)</div></div></div>
-      <div class="section-title">Détail par chantier</div>`;
+      <div class="section-title">Détail par chantier — Division Infrastructure</div>`;
 
-    html += results.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, i) : renderChantierCardBOQ(r, i)).join('');
+    const infraResults = results.filter(r => r.type !== 'kpi');
+    html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
+
+    if (kpiResults.length > 0) {
+      html += `<div class="section-title">Détail par chantier — Service Travaux Entretien</div>`;
+      html += kpiResults.map(r => renderChantierCardKPI(r, results.indexOf(r))).join('');
+    }
 
     content.className = '';
     content.innerHTML = html;
