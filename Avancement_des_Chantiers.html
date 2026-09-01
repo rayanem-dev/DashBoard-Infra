@@ -122,6 +122,10 @@ const CHANTIERS = [
   { nom: "Studio", type: "boq", csvUrl: "" },
   { nom: "Stades", type: "boq", csvUrl: "" },
 
+  // ── Service Construction — suivi main d'œuvre / matériel (pas un % financier) ──
+  { nom: "Génie Civil — Pointage MO/Matériel (ETBE ZATOUT)", type: "workforce", service: "Construction",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/export?format=csv&gid=0" },
+
   // ── Service Travaux Entretien (hors Division Infrastructure) ──
   // type "kpi" = le tableau de bord source calcule déjà lui-même son propre
   // pourcentage d'avancement sur une ligne fixe ; on relit juste Prévu/Réalisé
@@ -269,6 +273,27 @@ async function loadKPI(chantier) {
   };
 }
 
+// ─────────────────────────────────────────────
+// Chargement — type "workforce" (suivi main d'œuvre / matériel en jours,
+// pas de % financier — ex. pointage Génie Civil)
+// ─────────────────────────────────────────────
+async function loadWorkforce(chantier) {
+  const rows = await fetchCSV(chantier.csvUrl);
+  // ligne "TOTAL / MOYENNE" du tableau 1 (Effectifs et jours de présence)
+  const totalRow = rows.find(r => (r[0] || '').trim().toUpperCase().startsWith('TOTAL'));
+  const nbMoisRow = rows.findIndex(r => (r[0] || '').trim() === 'Mois');
+  const nbMois = totalRow && nbMoisRow >= 0 ? (rows.findIndex(r => (r[0]||'').trim().toUpperCase().startsWith('TOTAL')) - nbMoisRow - 1) : 8;
+  const totalPresence = totalRow ? parseNumberFR(totalRow[6]) : 0;
+  const totalRepos = totalRow ? parseNumberFR(totalRow[7]) : 0;
+  const effectifTotalCumule = totalRow ? parseNumberFR(totalRow[3]) : 0;
+  const effectifMoyen = nbMois > 0 ? effectifTotalCumule / nbMois : 0;
+  // ligne "TOTAL" du tableau 2 (matériel) — dernière colonne = Total annuel
+  const materielRow = rows.filter(r => (r[0] || '').trim().toUpperCase() === 'TOTAL').pop();
+  const totalMateriel = materielRow ? parseNumberFR(materielRow[materielRow.length - 1]) : 0;
+  return { nom: chantier.nom, type: 'workforce', service: chantier.service || '',
+    totalPresence, totalRepos, effectifMoyen, totalMateriel };
+}
+
 function renderDonut(pct) {
   const r = 52, c = 2 * Math.PI * r;
   const offset = c - (Math.min(100, pct) / 100) * c;
@@ -318,6 +343,18 @@ function renderChantierCardJournal(data, i) {
       <div class="lines-wrap">${sub}</div></div>`;
 }
 
+function renderChantierCardWorkforce(data, i) {
+  return `<div class="chantier-card" id="card-${i}" style="cursor:default;">
+      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit" style="background:#F0FDF4;color:#15803D;">Suivi main d'œuvre — jours</span></h3></div>
+      <div class="chantier-meta" style="margin-top:12px;gap:22px;">
+        <span>Effectif moyen : <b>${data.effectifMoyen.toFixed(0)}</b></span>
+        <span>Jours présence cumulés : <b>${data.totalPresence.toLocaleString('fr-FR')}</b></span>
+        <span>Jours repos cumulés : <b>${data.totalRepos.toLocaleString('fr-FR')}</b></span>
+        <span>Jours matériel cumulés : <b>${data.totalMateriel.toLocaleString('fr-FR')}</b></span>
+      </div>
+    </div>`;
+}
+
 function toggleCard(i) { document.getElementById('card-' + i).classList.toggle('open'); }
 
 async function init() {
@@ -328,6 +365,7 @@ async function init() {
       if (c.type === 'journal') return loadChantierJournal(c);
       if (c.type === 'portfolio') return loadPortfolio(c);
       if (c.type === 'kpi') return loadKPI(c);
+      if (c.type === 'workforce') return loadWorkforce(c);
       return loadChantierBOQ(c);
     }));
     // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
@@ -336,7 +374,9 @@ async function init() {
     const boqResults = results.filter(r => r.type === 'boq');
     const journalResults = results.filter(r => r.type === 'journal');
     const kpiResults = results.filter(r => r.type === 'kpi');
-    const globalPct = results.length > 0 ? results.reduce((s, r) => s + r.pct, 0) / results.length : 0;
+    const workforceResults = results.filter(r => r.type === 'workforce');
+    const pctResults = results.filter(r => r.type !== 'workforce');
+    const globalPct = pctResults.length > 0 ? pctResults.reduce((s, r) => s + r.pct, 0) / pctResults.length : 0;
 
     let html = `<div class="section-title">Vue globale</div>`;
 
@@ -372,13 +412,18 @@ async function init() {
     }
 
     html += `<div class="global-card">${renderDonut(globalPct)}
-        <div class="global-info"><h3>Avancement global — ${results.length} chantier${results.length > 1 ? 's' : ''}</h3>
+        <div class="global-info"><h3>Avancement global — ${pctResults.length} chantier${pctResults.length > 1 ? 's' : ''}</h3>
           <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(100,globalPct)}%"></div></div>
           <div class="sub">Moyenne simple entre chantiers (chaque chantier compte pour 1)</div></div></div>
       <div class="section-title">Détail par chantier — Division Infrastructure</div>`;
 
-    const infraResults = results.filter(r => r.type !== 'kpi');
+    const infraResults = results.filter(r => r.type === 'boq' || r.type === 'journal');
     html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
+
+    if (workforceResults.length > 0) {
+      html += `<div class="section-title">Détail par chantier — Service Construction (suivi main d'œuvre)</div>`;
+      html += workforceResults.map(r => renderChantierCardWorkforce(r, results.indexOf(r))).join('');
+    }
 
     if (kpiResults.length > 0) {
       html += `<div class="section-title">Détail par chantier — Service Travaux Entretien</div>`;
