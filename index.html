@@ -4533,6 +4533,14 @@
     { nom: "Piscines", type: "boq", csvUrl: "" },
     { nom: "Studio", type: "boq", csvUrl: "" },
     { nom: "Stades", type: "boq", csvUrl: "" },
+
+    // Service Travaux Entretien
+    { nom: "Forage RNS — 3 puits d'eau", type: "kpi",
+      csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1809509458",
+      cell: { row: 4, prevuCol: 0, realiseCol: 3 } },
+    { nom: "Terrassement RNS (36 mois)", type: "kpi",
+      csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=2117456852",
+      cell: { row: 3, prevuCol: 1, realiseCol: 4 } },
   ];
 
   function miniParseCSV(text) {
@@ -4604,12 +4612,21 @@
     }).filter(c => c.nom);
   }
 
+  async function miniLoadKPI(chantier) {
+    const rows = await miniFetchCSV(chantier.csvUrl);
+    const r = rows[chantier.cell.row] || [];
+    const totalPrevu = miniParseNumberFR(r[chantier.cell.prevuCol]);
+    const totalRealise = miniParseNumberFR(r[chantier.cell.realiseCol]);
+    return [{ nom: chantier.nom, pct: totalPrevu > 0 ? Math.min(100, (totalRealise / totalPrevu) * 100) : 0 }];
+  }
+
   async function initChantiersMini() {
     try {
       const active = CHANTIERS_MINI.filter(c => c.csvUrl && c.csvUrl.trim() !== '');
       const loaded = await Promise.all(active.map(c => {
         if (c.type === 'journal') return miniLoadJournal(c);
         if (c.type === 'portfolio') return miniLoadPortfolio(c);
+        if (c.type === 'kpi') return miniLoadKPI(c);
         return miniLoadBOQ(c);
       }));
       const results = loaded.flat();
