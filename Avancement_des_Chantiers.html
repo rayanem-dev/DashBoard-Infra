@@ -122,9 +122,9 @@ const CHANTIERS = [
   { nom: "Studio", type: "boq", csvUrl: "" },
   { nom: "Stades", type: "boq", csvUrl: "" },
 
-  // ── Service Construction — suivi main d'œuvre / matériel (pas un % financier) ──
-  { nom: "Génie Civil — Pointage MO/Matériel (ETBE ZATOUT)", type: "workforce", service: "Construction",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/gviz/tq?tqx=out:csv&sheet=Synthese" },
+  // ── Service Génie Civil — suivi main d'œuvre / matériel (pas un % financier) ──
+  { nom: "Génie Civil — Pointage MO/Matériel (ETBE ZATOUT)", type: "workforce", service: "Génie Civil",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/export?format=csv&gid=262596576" },
 
   // ── Service Travaux Entretien (hors Division Infrastructure) ──
   // type "kpi" = le tableau de bord source calcule déjà lui-même son propre
@@ -179,10 +179,19 @@ function statusBadge(pct) {
 }
 
 async function fetchCSV(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('fetch failed: ' + url);
-  const text = await res.text();
-  return parseCSV(text);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error('fetch failed (' + res.status + '): ' + url);
+    const text = await res.text();
+    return parseCSV(text);
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('délai dépassé (12s) — le lien ne répond pas : ' + url);
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -465,13 +474,13 @@ async function init() {
         <div class="global-info"><h3>Avancement global — ${pctResults.length} chantier${pctResults.length > 1 ? 's' : ''}</h3>
           <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(100,globalPct)}%"></div></div>
           <div class="sub">Moyenne simple entre chantiers (chaque chantier compte pour 1)</div></div></div>
-      <div class="section-title">Détail par chantier — Division Infrastructure</div>`;
+      <div class="section-title">Détail par chantier — Service Génie Civil</div>`;
 
     const infraResults = results.filter(r => (r.type === 'boq' || r.type === 'journal') && r.service !== 'Travaux Entretien');
     html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
 
     if (workforceResults.length > 0) {
-      html += `<div class="section-title">Détail par chantier — Service Construction (suivi main d'œuvre)</div>`;
+      html += `<div class="section-title">Service Génie Civil — Suivi main d'œuvre / matériel</div>`;
       html += workforceResults.map(r => renderChantierCardWorkforce(r, results.indexOf(r))).join('');
     }
 
