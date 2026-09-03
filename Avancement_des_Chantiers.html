@@ -130,13 +130,11 @@ const CHANTIERS = [
   // type "kpi" = le tableau de bord source calcule déjà lui-même son propre
   // pourcentage d'avancement sur une ligne fixe ; on relit juste Prévu/Réalisé
   // à un emplacement connu du tableau, sans reparser tout le bordereau.
-  { nom: "Forage RNS — 3 puits d'eau", type: "kpi", service: "Travaux Entretien",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1809509458",
-    cell: { row: 4, prevuCol: 0, realiseCol: 3 } },
+  { nom: "Forage RNS — 3 puits d'eau", type: "boq", service: "Travaux Entretien",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1644143287" },
 
-  { nom: "Terrassement RNS (36 mois)", type: "kpi", service: "Travaux Entretien",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=2117456852",
-    cell: { row: 3, prevuCol: 1, realiseCol: 4 } },
+  { nom: "Terrassement RNS (36 mois)", type: "boq", service: "Travaux Entretien",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=898466744" },
 ];
 
 // ─────────────────────────────────────────────
@@ -211,7 +209,7 @@ async function loadChantierBOQ(chantier) {
 
   const totalPrevu = lignes.reduce((s, l) => s + l.montantPrevu, 0);
   const totalRealise = lignes.reduce((s, l) => s + l.montantRealise, 0);
-  return { nom: chantier.nom, type: 'boq', lignes, totalPrevu, totalRealise, pct: totalPrevu > 0 ? (totalRealise / totalPrevu) * 100 : 0 };
+  return { nom: chantier.nom, type: 'boq', service: chantier.service || '', lignes, totalPrevu, totalRealise, pct: totalPrevu > 0 ? (totalRealise / totalPrevu) * 100 : 0 };
 }
 
 // ─────────────────────────────────────────────
@@ -423,9 +421,9 @@ async function init() {
     // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
     const results = loaded.flat();
 
-    const boqResults = results.filter(r => r.type === 'boq');
+    const boqResults = results.filter(r => r.type === 'boq' && r.service !== 'Travaux Entretien');
     const journalResults = results.filter(r => r.type === 'journal');
-    const kpiResults = results.filter(r => r.type === 'kpi');
+    const kpiResults = results.filter(r => r.service === 'Travaux Entretien');
     const workforceResults = results.filter(r => r.type === 'workforce');
     const pctResults = results.filter(r => r.type !== 'workforce');
     const globalPct = pctResults.length > 0 ? pctResults.reduce((s, r) => s + r.pct, 0) / pctResults.length : 0;
@@ -469,7 +467,7 @@ async function init() {
           <div class="sub">Moyenne simple entre chantiers (chaque chantier compte pour 1)</div></div></div>
       <div class="section-title">Détail par chantier — Division Infrastructure</div>`;
 
-    const infraResults = results.filter(r => r.type === 'boq' || r.type === 'journal');
+    const infraResults = results.filter(r => (r.type === 'boq' || r.type === 'journal') && r.service !== 'Travaux Entretien');
     html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
 
     if (workforceResults.length > 0) {
