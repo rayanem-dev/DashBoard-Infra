@@ -124,7 +124,7 @@ const CHANTIERS = [
 
   // ── Service Construction — suivi main d'œuvre / matériel (pas un % financier) ──
   { nom: "Génie Civil — Pointage MO/Matériel (ETBE ZATOUT)", type: "workforce", service: "Construction",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/export?format=csv&gid=0" },
+    csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/gviz/tq?tqx=out:csv&sheet=Synthese" },
 
   // ── Service Travaux Entretien (hors Division Infrastructure) ──
   // type "kpi" = le tableau de bord source calcule déjà lui-même son propre
@@ -361,13 +361,20 @@ async function init() {
   const content = document.getElementById('content');
   try {
     const active = CHANTIERS.filter(c => c.csvUrl && c.csvUrl.trim() !== '');
-    const loaded = await Promise.all(active.map(c => {
+    const settled = await Promise.allSettled(active.map(c => {
       if (c.type === 'journal') return loadChantierJournal(c);
       if (c.type === 'portfolio') return loadPortfolio(c);
       if (c.type === 'kpi') return loadKPI(c);
       if (c.type === 'workforce') return loadWorkforce(c);
       return loadChantierBOQ(c);
     }));
+
+    const failed = [];
+    const loaded = settled.map((s, i) => {
+      if (s.status === 'fulfilled') return s.value;
+      failed.push({ nom: active[i].nom, error: s.reason && s.reason.message ? s.reason.message : String(s.reason) });
+      return null;
+    }).filter(v => v !== null);
     // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
     const results = loaded.flat();
 
@@ -428,6 +435,13 @@ async function init() {
     if (kpiResults.length > 0) {
       html += `<div class="section-title">Détail par chantier — Service Travaux Entretien</div>`;
       html += kpiResults.map(r => renderChantierCardKPI(r, results.indexOf(r))).join('');
+    }
+
+    if (failed.length > 0) {
+      html += `<div class="section-title">⚠️ Chantiers non chargés</div>
+        <div class="error-box" style="text-align:left;background:#FEF2F2;border-radius:14px;border:1px solid #FECACA;padding:16px 20px;">
+          ${failed.map(f => `<div style="margin-bottom:8px;"><b>${f.nom}</b> — <span style="font-size:12px">${f.error}</span></div>`).join('')}
+        </div>`;
     }
 
     content.className = '';
