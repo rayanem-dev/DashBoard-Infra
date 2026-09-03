@@ -123,7 +123,7 @@ const CHANTIERS = [
   { nom: "Stades", type: "boq", csvUrl: "" },
 
   // ── Service Génie Civil — suivi main d'œuvre / matériel (pas un % financier) ──
-  { nom: "Génie Civil — Pointage MO/Matériel (ETBE ZATOUT)", type: "workforce", service: "Génie Civil",
+  { nom: "Prestation Génie Civil", type: "workforce", service: "Génie Civil",
     csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/export?format=csv&gid=262596576" },
 
   // ── Service Travaux Entretien (hors Division Infrastructure) ──
@@ -131,10 +131,10 @@ const CHANTIERS = [
   // pourcentage d'avancement sur une ligne fixe ; on relit juste Prévu/Réalisé
   // à un emplacement connu du tableau, sans reparser tout le bordereau.
   { nom: "Forage RNS — 3 puits d'eau", type: "boq", service: "Travaux Entretien",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1644143287" },
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNBrPcplKd8cAlSsBj8Ln5OllbtMtEEvuzk2dINI6msQHMdvT0Q3EtSJN4Mo9k2CI3JKv0tdtU_F5F/pub?gid=1644143287&single=true&output=csv" },
 
   { nom: "Terrassement RNS (36 mois)", type: "boq", service: "Travaux Entretien",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=898466744" },
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdwibCQiTsQJ_5yOD6mpB-O8fOqNn4TfpDUP5siX0k-6ejEmk7HiYUgYlpCZH7p9OL0J7mqr_OU4j2/pub?gid=898466744&single=true&output=csv" },
 ];
 
 // ─────────────────────────────────────────────
@@ -478,11 +478,7 @@ async function init() {
 
     const infraResults = results.filter(r => (r.type === 'boq' || r.type === 'journal') && r.service !== 'Travaux Entretien');
     html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
-
-    if (workforceResults.length > 0) {
-      html += `<div class="section-title">Service Génie Civil — Suivi main d'œuvre / matériel</div>`;
-      html += workforceResults.map(r => renderChantierCardWorkforce(r, results.indexOf(r))).join('');
-    }
+    html += workforceResults.map(r => renderChantierCardWorkforce(r, results.indexOf(r))).join('');
 
     if (kpiResults.length > 0) {
       html += `<div class="section-title">Détail par chantier — Service Travaux Entretien</div>`;
