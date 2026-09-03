@@ -279,19 +279,42 @@ async function loadKPI(chantier) {
 // ─────────────────────────────────────────────
 async function loadWorkforce(chantier) {
   const rows = await fetchCSV(chantier.csvUrl);
-  // ligne "TOTAL / MOYENNE" du tableau 1 (Effectifs et jours de présence)
-  const totalRow = rows.find(r => (r[0] || '').trim().toUpperCase().startsWith('TOTAL'));
-  const nbMoisRow = rows.findIndex(r => (r[0] || '').trim() === 'Mois');
-  const nbMois = totalRow && nbMoisRow >= 0 ? (rows.findIndex(r => (r[0]||'').trim().toUpperCase().startsWith('TOTAL')) - nbMoisRow - 1) : 8;
+  // ── Tableau 1 : Effectifs et jours de présence par mois ──
+  const hdr1Idx = rows.findIndex(r => (r[0] || '').trim() === 'Mois');
+  const total1Idx = rows.findIndex(r => (r[0] || '').trim().toUpperCase().startsWith('TOTAL'));
+  const totalRow = total1Idx >= 0 ? rows[total1Idx] : null;
+  const nbMois = hdr1Idx >= 0 && total1Idx >= 0 ? (total1Idx - hdr1Idx - 1) : 8;
   const totalPresence = totalRow ? parseNumberFR(totalRow[6]) : 0;
   const totalRepos = totalRow ? parseNumberFR(totalRow[7]) : 0;
   const effectifTotalCumule = totalRow ? parseNumberFR(totalRow[3]) : 0;
   const effectifMoyen = nbMois > 0 ? effectifTotalCumule / nbMois : 0;
-  // ligne "TOTAL" du tableau 2 (matériel) — dernière colonne = Total annuel
+
+  const parMois = [];
+  if (hdr1Idx >= 0 && total1Idx > hdr1Idx) {
+    for (let i = hdr1Idx + 1; i < total1Idx; i++) {
+      const r = rows[i];
+      if (!r || !r[0]) continue;
+      parMois.push({
+        mois: r[0].trim(), effectif: parseNumberFR(r[3]),
+        presence: parseNumberFR(r[6]), repos: parseNumberFR(r[7]),
+      });
+    }
+  }
+
+  // ── Tableau 2 : Suivi matériel — jours d'utilisation par mois ──
+  const hdr2Idx = rows.findIndex(r => (r[0] || '').trim() === 'Engin');
   const materielRow = rows.filter(r => (r[0] || '').trim().toUpperCase() === 'TOTAL').pop();
   const totalMateriel = materielRow ? parseNumberFR(materielRow[materielRow.length - 1]) : 0;
+  const materielParMois = [];
+  if (hdr2Idx >= 0 && materielRow) {
+    const moisLabels = rows[hdr2Idx].slice(1, -1); // exclut 'Engin' et 'Total annuel'
+    moisLabels.forEach((label, idx) => {
+      materielParMois.push({ mois: (label || '').trim(), jours: parseNumberFR(materielRow[idx + 1]) });
+    });
+  }
+
   return { nom: chantier.nom, type: 'workforce', service: chantier.service || '',
-    totalPresence, totalRepos, effectifMoyen, totalMateriel };
+    totalPresence, totalRepos, effectifMoyen, totalMateriel, parMois, materielParMois };
 }
 
 function renderDonut(pct) {
@@ -344,14 +367,36 @@ function renderChantierCardJournal(data, i) {
 }
 
 function renderChantierCardWorkforce(data, i) {
-  return `<div class="chantier-card" id="card-${i}" style="cursor:default;">
-      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit" style="background:#F0FDF4;color:#15803D;">Suivi main d'œuvre — jours</span></h3></div>
+  const rowsPresence = (data.parMois || []).map(m => `
+    <tr><td>${m.mois}</td><td>${m.effectif}</td><td>${m.presence.toLocaleString('fr-FR')}</td><td>${m.repos.toLocaleString('fr-FR')}</td></tr>`).join('');
+  const rowsMateriel = (data.materielParMois || []).map(m => `
+    <tr><td>${m.mois}</td><td>${m.jours.toLocaleString('fr-FR')}</td></tr>`).join('');
+  const tableStyle = 'width:100%;border-collapse:collapse;font-size:12px;';
+  const thStyle = 'text-align:left;padding:6px 8px;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);';
+  const tdStyle = 'padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text-dark);';
+  const detail = `
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-dark);margin-bottom:8px;">Détail mensuel — effectifs & présence</div>
+      <table style="${tableStyle}"><thead><tr>
+        <th style="${thStyle}">Mois</th><th style="${thStyle}">Effectif</th><th style="${thStyle}">Jours présence</th><th style="${thStyle}">Jours repos</th>
+      </tr></thead><tbody>${rowsPresence.replace(/<td>/g, `<td style="${tdStyle}">`)}</tbody></table>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-dark);margin-bottom:8px;">Détail mensuel — matériel (jours d'utilisation, tous engins)</div>
+      <table style="${tableStyle}"><thead><tr>
+        <th style="${thStyle}">Mois</th><th style="${thStyle}">Jours matériel</th>
+      </tr></thead><tbody>${rowsMateriel.replace(/<td>/g, `<td style="${tdStyle}">`)}</tbody></table>
+    </div>`;
+  return `<div class="chantier-card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit" style="background:#F0FDF4;color:#15803D;">Suivi main d'œuvre — jours</span></h3>
+        <span class="chevron">▾</span></div>
       <div class="chantier-meta" style="margin-top:12px;gap:22px;">
         <span>Effectif moyen : <b>${data.effectifMoyen.toFixed(0)}</b></span>
         <span>Jours présence cumulés : <b>${data.totalPresence.toLocaleString('fr-FR')}</b></span>
         <span>Jours repos cumulés : <b>${data.totalRepos.toLocaleString('fr-FR')}</b></span>
         <span>Jours matériel cumulés : <b>${data.totalMateriel.toLocaleString('fr-FR')}</b></span>
       </div>
+      <div class="lines-wrap">${detail}</div>
     </div>`;
 }
 
