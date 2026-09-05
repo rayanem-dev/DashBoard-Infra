@@ -463,6 +463,28 @@
     color: var(--badge-update);
   }
 
+  .badge-ai {
+    background: linear-gradient(90deg,#7C3AED,#C026D3);
+    color: #fff;
+  }
+
+  .card-highlight {
+    border: 2px solid #7C3AED !important;
+    box-shadow: 0 0 0 5px rgba(124,58,237,0.14), 0 10px 30px rgba(124,58,237,0.22);
+    position: relative;
+  }
+
+  .card-highlight::before {
+    opacity: 1 !important;
+    background: linear-gradient(90deg,#7C3AED,#C026D3) !important;
+    height: 4px !important;
+  }
+
+  .card-highlight:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 0 5px rgba(124,58,237,0.20), 0 16px 36px rgba(124,58,237,0.30);
+  }
+
   .card h3 {
     font-size: 14px;
     font-weight: 700;
@@ -573,7 +595,7 @@
     </div>
     <div class="header-right">
       <div class="header-stat">
-        <div class="num">25</div>
+        <div class="num">27</div>
         <div class="lbl">Applications</div>
       </div>
       <div class="divider-v"></div>
@@ -583,7 +605,7 @@
       </div>
       <div class="divider-v"></div>
       <div class="header-stat">
-        <div class="num">9</div>
+        <div class="num">12</div>
         <div class="lbl">Nouveautés</div>
       </div>
       <div class="divider-v"></div>
@@ -710,7 +732,7 @@
       <div class="cat-icon" style="background:#FFF3E0;">📊</div>
       <span class="cat-title">Pilotage & Projets</span>
       <div class="cat-line" style="background:linear-gradient(90deg,#E85D04,#F48C06);"></div>
-      <span class="cat-count">5 apps</span>
+      <span class="cat-count">6 apps</span>
     </div>
     <div class="cards-grid">
 
@@ -730,11 +752,19 @@
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1wMYK8rL8xPhNCHtR2t0jkMifLGMMjUvvVsJljNm74OY/edit?gid=0#gid=0" target="_blank"
+      <a class="card" href="https://rayanem-dev.github.io/DashBoard-Infra/Avancement_des_Chantiers.html" target="_blank"
          style="--cat-color-a:#E85D04;--cat-color-b:#F48C06;">
-        <div class="card-top"><span class="card-emoji">🏗️</span></div>
-        <h3>Construction Projects Dashboard</h3>
-        <p>Tableau de bord global des projets de construction en cours, suivi des avancements et indicateurs de performance.</p>
+        <div class="card-top"><span class="card-emoji">📊</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
+        <h3>Avancement Chantiers</h3>
+        <p>Tableau de bord global des chantiers d'infrastructure en cours, suivi de l'avancement physique et financier en temps réel.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://rayanem-dev.github.io/DashBoard-Infra/Suivi_Chantier.html" target="_blank"
+         style="--cat-color-a:#E85D04;--cat-color-b:#F48C06;">
+        <div class="card-top"><span class="card-emoji">🗂️</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
+        <h3>🗂️ Suivi Chantier</h3>
+        <p>Suivi détaillé chantier par chantier : jalons, documents et état d'avancement consolidé.</p>
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
@@ -765,7 +795,7 @@
       <div class="cat-icon" style="background:#E3F2FD;">👥</div>
       <span class="cat-title">Ressources Humaines & Personnel</span>
       <div class="cat-line" style="background:linear-gradient(90deg,#1565C0,#42A5F5);"></div>
-      <span class="cat-count">8 apps</span>
+      <span class="cat-count">7 apps</span>
     </div>
     <div class="cards-grid">
 
@@ -817,14 +847,6 @@
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1RhMi3bdsGb8qsm7qRwQLCEjCvEJTsSuR5x5c7xHaxvE/edit?gid=0#gid=0" target="_blank"
-         style="--cat-color-a:#1565C0;--cat-color-b:#42A5F5;">
-        <div class="card-top"><span class="card-emoji">🧾</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
-        <h3>Prises en Charge</h3>
-        <p>Application dédiée à la création et au suivi des prises en charge du personnel de la division Infrastructure.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
       <a class="card" href="https://drive.google.com/drive/folders/1b8JgLaV1lxF1wdgHTHSkA9XBTp7m46y6" target="_blank"
          style="--cat-color-a:#1565C0;--cat-color-b:#42A5F5;">
         <div class="card-top"><span class="card-emoji">🎥</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
@@ -844,7 +866,7 @@
       <div class="cat-icon" style="background:#E8F5E9;">🚛</div>
       <span class="cat-title">Logistique, Stocks & Sous-traitants</span>
       <div class="cat-line" style="background:linear-gradient(90deg,#2E7D32,#66BB6A);"></div>
-      <span class="cat-count" style="background:#E8F5E9;color:#2E7D32;">5 apps</span>
+      <span class="cat-count" style="background:#E8F5E9;color:#2E7D32;">7 apps</span>
     </div>
     <div class="cards-grid">
 
@@ -886,6 +908,22 @@
         <h3>Statistiques Sous-traitants – Avril 2026</h3>
         <p>Compilation des données statistiques sur les sous-traitants : effectifs déployés, missions réalisées et indicateurs de performance.</p>
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1RhMi3bdsGb8qsm7qRwQLCEjCvEJTsSuR5x5c7xHaxvE/edit?gid=0#gid=0" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">🧾</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
+        <h3>Prises en Charge</h3>
+        <p>Application dédiée à la création et au suivi des prises en charge du personnel de la division Infrastructure.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card card-highlight" href="https://docs.google.com/spreadsheets/d/1htHz2rgdyjtH3Ne5E8QNprX2LZKauui4hF25Xse5S18/edit?gid=0#gid=0" target="_blank"
+         style="--cat-color-a:#7C3AED;--cat-color-b:#C026D3;">
+        <div class="card-top"><span class="card-emoji">🧾🪪</span><div class="badges"><span class="badge badge-new">Nouveau</span><span class="badge badge-ai">✨ IA</span></div></div>
+        <h3>Prises en Charge + Autorisation d'Accès</h3>
+        <p>Application unifiée et intelligente regroupant la création, la vérification et le suivi des prises en charge ainsi que des autorisations d'accès. Des fragments d'intelligence artificielle ont été utilisés pour automatiser la saisie et accélérer le traitement des dossiers.</p>
+        <div class="card-footer"><span class="open-btn" style="color:#7C3AED;">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
     </div>
