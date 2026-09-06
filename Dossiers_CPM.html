@@ -310,7 +310,7 @@ function renderToolbarAndSummary() {
     <div class="summary-grid">
       <div class="sum-card total" data-filter="all"><div class="n">${total}</div><div class="l">Total dossiers</div></div>
       ${categoryTiles}
-      <div class="sum-card echeance ${activeFilter==='echeance' ? 'active' : ''}" data-filter="echeance"><div class="n">⏳ ${echeanceCount}</div><div class="l">Arrivée à échéance (contrats en exécution, 6-12 mois)</div></div>
+      <div class="sum-card echeance ${activeFilter==='echeance' ? 'active' : ''}" data-filter="echeance"><div class="n">⏳ ${echeanceCount}</div><div class="l">Arrivée à échéance (contrats en exécution, ≥60% du délai consommé)</div></div>
     </div>
     <div class="toolbar">
       <div class="search-box"><span class="icon">🔍</span><input type="text" id="search-input" placeholder="Rechercher un intitulé, une entreprise, une adresse…" value="${document.getElementById('search-input') ? escapeHtml(document.getElementById('search-input').value) : ''}"/></div>
@@ -349,8 +349,6 @@ async function init() {
     const data = rows.slice(headerIdx + 1);
 
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const in6mo = new Date(today); in6mo.setMonth(in6mo.getMonth() + 6);
-    const in12mo = new Date(today); in12mo.setMonth(in12mo.getMonth() + 12);
 
     ALL_DOSSIERS = data
       .filter(r => (r[COL.INTITULE] && r[COL.INTITULE].trim() !== '') || (r[COL.STATUT] && r[COL.STATUT].trim() !== ''))
@@ -380,8 +378,8 @@ async function init() {
           }
         }
 
-        // "Arrivée à échéance" ne concerne que les contrats en cours d'exécution
-        const echeanceProche = !!(key === 'execution' && echeanceDate && echeanceDate >= in6mo && echeanceDate <= in12mo);
+        // "Arrivée à échéance" = contrat en exécution ayant consommé ≥ 60% de son délai total
+        const echeanceProche = !!(key === 'execution' && pctConsomme !== null && pctConsomme >= 60);
 
         const d = {
           key,
