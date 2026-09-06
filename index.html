@@ -4786,7 +4786,7 @@
         else autres++;
 
         const echeance = cpmParseFrDate(r[18]);
-        if (echeance && echeance >= in6mo && echeance <= in12mo) echeanceProche++;
+        if (statut.includes('execution') && echeance && echeance >= in6mo && echeance <= in12mo) echeanceProche++;
       });
 
       const pct = n => total > 0 ? Math.round((n / total) * 100) + '% du total' : '—';
