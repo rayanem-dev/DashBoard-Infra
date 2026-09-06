@@ -270,6 +270,34 @@
   .cpm-stat.demarrage .cpm-lbl { color: #92400E; }
   .cpm-stat.demarrage .cpm-pct { color: #92400E; }
 
+  .cpm-stat.execution { background: #DCEEFB; }
+  .cpm-stat.execution .cpm-num { color: #1D6FA5; }
+  .cpm-stat.execution .cpm-lbl { color: #185A85; }
+  .cpm-stat.execution .cpm-pct { color: #185A85; }
+
+  .cpm-stat.echu { background: #ECECEF; }
+  .cpm-stat.echu .cpm-num { color: #52525B; }
+  .cpm-stat.echu .cpm-lbl { color: #3F3F46; }
+  .cpm-stat.echu .cpm-pct { color: #3F3F46; }
+
+  .cpm-echeance-alert {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #FFF3E0, #FFE8D6);
+    border: 1.5px solid #F4B36A;
+    border-radius: 14px;
+    padding: 14px 18px;
+    text-decoration: none;
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .cpm-echeance-alert:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+  .cpm-echeance-alert .em { font-size: 26px; flex-shrink: 0; }
+  .cpm-echeance-alert .num { font-size: 22px; font-weight: 800; color: #9A5B0F; }
+  .cpm-echeance-alert .txt { font-size: 12.5px; color: #7A4A15; font-weight: 600; flex: 1; }
+  .cpm-echeance-alert .arrow { color: #9A5B0F; font-size: 18px; }
+
   .cpm-bar {
     display: flex;
     height: 10px;
@@ -633,44 +661,56 @@
     <div class="cpm-panel-inner">
       <div class="cpm-panel-header">
         <div>
-          <div class="cpm-panel-title"><span class="em">📋</span> Suivi CPM</div>
-          <div class="cpm-panel-sub">56 dossiers suivis &nbsp;·&nbsp; <span id="cpm-last-update">Dernière mise à jour : 28/08/2026 à 14:30</span></div>
+          <div class="cpm-panel-title"><span class="em">📋</span> Suivi CPM <span class="badge badge-update" style="margin-left:4px;">V5</span></div>
+          <div class="cpm-panel-sub" id="cpm-sub">Chargement des données…</div>
         </div>
-        <a class="cpm-panel-link" href="https://docs.google.com/spreadsheets/d/1fESuQt2yhFzkE5dcLIv0zkLfXqt_yo698v32DVgHTN0/edit?usp=sharing" target="_blank">Ouvrir <span>→</span></a>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <a class="cpm-panel-link" href="Dossiers_CPM.html">Détail <span>→</span></a>
+          <a class="cpm-panel-link" href="https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/edit?usp=sharing" target="_blank">Ouvrir <span>→</span></a>
+        </div>
       </div>
-      <div class="cpm-stats-grid">
+      <div class="cpm-stats-grid" id="cpm-stats-grid">
         <div class="cpm-stat total">
-          <div class="cpm-num">56</div>
+          <div class="cpm-num" id="cpm-total">—</div>
           <div class="cpm-lbl">Total dossiers</div>
         </div>
         <div class="cpm-stat attribue">
-          <div class="cpm-num">27</div>
+          <div class="cpm-num" id="cpm-attribue">—</div>
           <div class="cpm-lbl">Attribué</div>
-          <div class="cpm-pct">48% du total</div>
+          <div class="cpm-pct" id="cpm-attribue-pct">—</div>
         </div>
-        <div class="cpm-stat encours">
-          <div class="cpm-num">18</div>
-          <div class="cpm-lbl">En cours</div>
-          <div class="cpm-pct">32% du total</div>
+        <div class="cpm-stat execution">
+          <div class="cpm-num" id="cpm-execution">—</div>
+          <div class="cpm-lbl">En exécution</div>
+          <div class="cpm-pct" id="cpm-execution-pct">—</div>
         </div>
-        <div class="cpm-stat termine">
-          <div class="cpm-num">6</div>
-          <div class="cpm-lbl">Terminé</div>
-          <div class="cpm-pct">11% du total</div>
+        <div class="cpm-stat echu">
+          <div class="cpm-num" id="cpm-echu">—</div>
+          <div class="cpm-lbl">Échu</div>
+          <div class="cpm-pct" id="cpm-echu-pct">—</div>
         </div>
         <div class="cpm-stat nondemarre">
-          <div class="cpm-num">5</div>
-          <div class="cpm-lbl">Non démarré</div>
-          <div class="cpm-pct">9% du total</div>
+          <div class="cpm-num" id="cpm-autres">—</div>
+          <div class="cpm-lbl">Autres statuts</div>
+          <div class="cpm-pct" id="cpm-autres-pct">—</div>
         </div>
       </div>
-      <div class="cpm-bar">
-        <div class="cpm-bar-seg attribue" style="width:48%;"></div>
-        <div class="cpm-bar-seg encours" style="width:32%;"></div>
-        <div class="cpm-bar-seg termine" style="width:11%;"></div>
-        <div class="cpm-bar-seg nondemarre" style="width:9%;"></div>
+      <div class="cpm-bar" id="cpm-bar">
+        <div class="cpm-bar-seg attribue" id="cpm-bar-attribue" style="width:0%;"></div>
+        <div class="cpm-bar-seg encours" id="cpm-bar-execution" style="width:0%;background:#1D6FA5;"></div>
+        <div class="cpm-bar-seg termine" id="cpm-bar-echu" style="width:0%;background:#9CA3AF;"></div>
+        <div class="cpm-bar-seg nondemarre" id="cpm-bar-autres" style="width:0%;"></div>
       </div>
+      <a class="cpm-echeance-alert" id="cpm-echeance-alert" href="Dossiers_CPM.html?echeance=1" style="display:none;">
+        <span class="em">⏳</span>
+        <div style="flex:1;">
+          <div><span class="num" id="cpm-echeance-num">0</span> <span class="txt" style="font-weight:800;color:#9A5B0F;">dossier(s) arrivant à échéance</span></div>
+          <div class="txt">Échéance contractuelle entre 6 mois et 1 an — à anticiper</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
     </div>
+
 
     <div class="cpm-panel-inner">
       <div class="cpm-panel-header">
@@ -744,11 +784,19 @@
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1fESuQt2yhFzkE5dcLIv0zkLfXqt_yo698v32DVgHTN0/edit?usp=drive_link" target="_blank"
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/edit?usp=sharing" target="_blank"
          style="--cat-color-a:#E85D04;--cat-color-b:#F48C06;">
-        <div class="card-top"><span class="card-emoji">📋</span><div class="badges"><span class="badge badge-update">V3.2</span></div></div>
-        <h3>Suivi CPM 3.0</h3>
+        <div class="card-top"><span class="card-emoji">📋</span><div class="badges"><span class="badge badge-update">V5</span></div></div>
+        <h3>Suivi CPM V5</h3>
         <p>Préparation et suivi des projets via l'outil CPM. Gestion des délais, jalons et livrables des projets d'infrastructure.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="Dossiers_CPM.html" target="_blank"
+         style="--cat-color-a:#E85D04;--cat-color-b:#F48C06;">
+        <div class="card-top"><span class="card-emoji">🗂️</span><div class="badges"><span class="badge badge-new">Nouveau</span><span class="badge badge-update">V5</span></div></div>
+        <h3>Dossiers CPM — Détail</h3>
+        <p>Fiche détaillée de chaque cahier des charges, regroupée par statut : attribution, contrat, coordonnées fournisseur et échéances.</p>
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
@@ -4695,6 +4743,80 @@
     }
   }
   initChantiersMini();
+
+  // ─────────────────────────────────────────────
+  // Panneau "Suivi CPM" — données en direct depuis Suivi CPM V5
+  // ─────────────────────────────────────────────
+  const CPM_CSV_URL = "https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/export?format=csv&gid=1963142469";
+
+  function cpmParseFrDate(str) {
+    if (!str) return null;
+    const parts = str.trim().split('/');
+    if (parts.length !== 3) return null;
+    const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+    if (!d || !m || !y || y < 1990) return null;
+    const dt = new Date(y, m - 1, d);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  function cpmNormalize(str) {
+    return (str || '').toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  async function initCpmPanel() {
+    try {
+      const rows = await miniFetchCSV(CPM_CSV_URL);
+      let headerIdx = rows.findIndex(r => r.some(cell => cpmNormalize(cell) === 'statut'));
+      if (headerIdx === -1) headerIdx = 1;
+      const data = rows.slice(headerIdx + 1).filter(r => (r[3] && r[3].trim() !== '') || (r[8] && r[8].trim() !== ''));
+
+      const total = data.length;
+      let attribue = 0, execution = 0, echu = 0, autres = 0, echeanceProche = 0;
+
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const in6mo = new Date(today); in6mo.setMonth(in6mo.getMonth() + 6);
+      const in12mo = new Date(today); in12mo.setMonth(in12mo.getMonth() + 12);
+
+      data.forEach(r => {
+        const statut = cpmNormalize(r[8]);
+        if (statut.includes('attribue')) attribue++;
+        else if (statut.includes('execution')) execution++;
+        else if (statut.includes('echu') || statut.includes('termine')) echu++;
+        else autres++;
+
+        const echeance = cpmParseFrDate(r[18]);
+        if (echeance && echeance >= in6mo && echeance <= in12mo) echeanceProche++;
+      });
+
+      const pct = n => total > 0 ? Math.round((n / total) * 100) + '% du total' : '—';
+
+      document.getElementById('cpm-total').textContent = total;
+      document.getElementById('cpm-attribue').textContent = attribue;
+      document.getElementById('cpm-attribue-pct').textContent = pct(attribue);
+      document.getElementById('cpm-execution').textContent = execution;
+      document.getElementById('cpm-execution-pct').textContent = pct(execution);
+      document.getElementById('cpm-echu').textContent = echu;
+      document.getElementById('cpm-echu-pct').textContent = pct(echu);
+      document.getElementById('cpm-autres').textContent = autres;
+      document.getElementById('cpm-autres-pct').textContent = pct(autres);
+
+      document.getElementById('cpm-bar-attribue').style.width = (total > 0 ? (attribue / total) * 100 : 0) + '%';
+      document.getElementById('cpm-bar-execution').style.width = (total > 0 ? (execution / total) * 100 : 0) + '%';
+      document.getElementById('cpm-bar-echu').style.width = (total > 0 ? (echu / total) * 100 : 0) + '%';
+      document.getElementById('cpm-bar-autres').style.width = (total > 0 ? (autres / total) * 100 : 0) + '%';
+
+      document.getElementById('cpm-sub').innerHTML = total + ' dossier' + (total > 1 ? 's' : '') + ' suivis &nbsp;·&nbsp; <span style="font-weight:600;color:#E85D04;">🕒 mis à jour à l\'instant</span>';
+
+      if (echeanceProche > 0) {
+        document.getElementById('cpm-echeance-num').textContent = echeanceProche;
+        document.getElementById('cpm-echeance-alert').style.display = 'flex';
+      }
+    } catch (e) {
+      document.getElementById('cpm-sub').textContent = "Données indisponibles pour l'instant";
+    }
+  }
+  initCpmPanel();
 </script>
 
 </body>
