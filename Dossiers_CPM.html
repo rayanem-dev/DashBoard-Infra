@@ -31,7 +31,7 @@
   main { max-width: 1300px; margin: 0 auto; padding: 26px 20px 60px; }
 
   /* ── SUMMARY STRIP ── */
-  .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
   @media (max-width: 900px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
   .sum-card { background: white; border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow-card); border: 1px solid var(--border); cursor: pointer; transition: box-shadow 0.2s, transform 0.15s; }
   .sum-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
@@ -72,9 +72,11 @@
   .dcard-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
   .dcard h3 { font-size: 14.5px; font-weight: 700; color: var(--gray-dark); line-height: 1.35; }
   .dcard .etape-pill { display: inline-block; margin-top: 8px; font-size: 10.5px; font-weight: 600; color: var(--text-muted); background: var(--gray-light); padding: 3px 9px; border-radius: 20px; max-width: 100%; }
+  .statut-chip { display: inline-block; margin-top: 6px; margin-right: 6px; font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
   .gauge-wrap { position: relative; width: 54px; height: 54px; flex-shrink: 0; }
   .gauge-wrap svg { transform: rotate(-90deg); }
   .gauge-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--gray-dark); }
+  .gauge-sub { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 8px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; white-space: nowrap; }
 
   .echeance-flag { position: absolute; top: -8px; right: 14px; background: linear-gradient(135deg,#F4B36A,#E8940A); color: white; font-size: 9.5px; font-weight: 800; padding: 3px 9px; border-radius: 20px; box-shadow: 0 2px 8px rgba(232,148,10,0.5); white-space: nowrap; }
 
@@ -131,19 +133,19 @@ const COL = {
 };
 
 const STATUT_STYLES = {
-  'attribue':   { label: 'Attribué',             color: '#E85D04', bg: '#FFF3E0', dot: '#E85D04' },
-  'execution':  { label: 'Contrat en exécution', color: '#1D6FA5', bg: '#DCEEFB', dot: '#1D6FA5' },
-  'echu':       { label: 'Contrat échu',         color: '#52525B', bg: '#ECECEF', dot: '#52525B' },
-  'encours':    { label: 'Dossier en cours',     color: '#3F8E4F', bg: '#E4F5E8', dot: '#3F8E4F' },
-  'bloque':     { label: 'Bloqué',                color: '#B10202', bg: '#FDE4E4', dot: '#B10202' },
-  'infructueux':{ label: 'Infructueux',           color: '#3d3d3d', bg: '#EDEDED', dot: '#3d3d3d' },
-  'nondemarre': { label: 'Non démarré',           color: '#92703A', bg: '#FFF6E8', dot: '#92703A' },
-  'autre':      { label: 'Autre / non renseigné', color: '#6B7280', bg: '#F1F1F1', dot: '#6B7280' }
+  'attribue':   { label: 'Attribué',             chipBg: '#7CD5B0', chipText: '#0B4A34', accent: '#1f9d6c' },
+  'execution':  { label: 'Contrat en exécution', chipBg: '#BFE1F6', chipText: '#155479', accent: '#2f8fc4' },
+  'echu':       { label: 'Contrat échu',         chipBg: '#8B8D91', chipText: '#FFFFFF', accent: '#6b6d72' },
+  'encours':    { label: 'Dossier en cours',     chipBg: '#D4EDBC', chipText: '#3F6B2E', accent: '#5fae70' },
+  'bloque':     { label: 'Bloqué',                chipBg: '#B10202', chipText: '#FFFFFF', accent: '#B10202' },
+  'infructueux':{ label: 'Infructueux',           chipBg: '#3D3D3D', chipText: '#FFFFFF', accent: '#3D3D3D' },
+  'nondemarre': { label: 'Non démarré',           chipBg: '#FFF6E8', chipText: '#8a6a2f', accent: '#c99a3e' },
+  'autre':      { label: 'Autre / non renseigné', chipBg: '#F1F1F1', chipText: '#6B7280', accent: '#9CA3AF' }
 };
+const STATUT_ORDER = ['attribue', 'encours', 'execution', 'echu', 'bloque', 'infructueux', 'nondemarre', 'autre'];
 
 let ALL_DOSSIERS = [];
-let activeFilter = 'all';
-let echeanceOnly = new URLSearchParams(window.location.search).get('echeance') === '1';
+let activeFilter = new URLSearchParams(window.location.search).get('echeance') === '1' ? 'echeance' : 'all';
 
 function normalize(str) {
   return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -193,14 +195,14 @@ function parseCSV(text) {
   return rows;
 }
 
-function renderGauge(pct, color) {
+function renderGauge(pct, color, sub) {
   const r = 22, c = 2 * Math.PI * r;
   const p = Math.max(0, Math.min(100, pct));
   const offset = c - (p / 100) * c;
   return `<div class="gauge-wrap"><svg width="54" height="54" viewBox="0 0 54 54">
       <circle cx="27" cy="27" r="${r}" fill="none" stroke="#F0F0EC" stroke-width="6"/>
       <circle cx="27" cy="27" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"/>
-    </svg><div class="gauge-pct">${p.toFixed(0)}%</div></div>`;
+    </svg><div class="gauge-pct">${p.toFixed(0)}%</div>${sub ? `<div class="gauge-sub">${sub}</div>` : ''}</div>`;
 }
 
 function metaItem(label, value) {
@@ -217,6 +219,10 @@ function renderCard(d) {
   const contratLabel = d.key === 'execution' ? 'N° Projet SAP' : 'N° Contrat';
   const contratValue = d.key === 'execution' ? d.nProjetSap : d.nContrat;
 
+  // Pour les contrats en exécution : jauge = % de consommation du contrat (Q/R/S), pas le % Réalisé (souvent figé à 100%)
+  const gaugePct = (d.key === 'execution' && d.pctConsomme !== null) ? d.pctConsomme : d.pct;
+  const gaugeSub = (d.key === 'execution' && d.pctConsomme !== null) ? 'consommé' : '';
+
   const contactLines = [];
   if (d.adresse || d.ville) contactLines.push(`<div class="contact-line">📍 <span>${escapeHtml([d.adresse, d.ville].filter(Boolean).join(', '))}</span></div>`);
   if (d.tel) contactLines.push(`<div class="contact-line">☎️ <a href="tel:${escapeHtml(d.tel)}">${escapeHtml(d.tel)}</a></div>`);
@@ -224,14 +230,15 @@ function renderCard(d) {
   if (d.fax) contactLines.push(`<div class="contact-line">📠 <span>${escapeHtml(d.fax)}</span></div>`);
   if (d.email) contactLines.push(`<div class="contact-line">✉️ <a href="mailto:${escapeHtml(d.email)}">${escapeHtml(d.email)}</a></div>`);
 
-  return `<div class="dcard" style="border-left-color:${style.color}">
+  return `<div class="dcard" style="border-left-color:${style.accent}">
     ${d.echeanceProche ? '<span class="echeance-flag">⏳ Arrive à échéance</span>' : ''}
     <div class="dcard-top">
       <div>
         <h3>${escapeHtml(d.intitule) || '<em style="color:#9CA3AF">Sans intitulé</em>'}</h3>
+        <span class="statut-chip" style="background:${style.chipBg};color:${style.chipText}">${style.label}</span>
         ${d.etape ? `<div class="etape-pill" title="${escapeHtml(d.etape)}">${escapeHtml(d.etape.length > 60 ? d.etape.slice(0,60) + '…' : d.etape)}</div>` : ''}
       </div>
-      ${renderGauge(d.pct, style.color)}
+      ${renderGauge(gaugePct, style.accent, gaugeSub)}
     </div>
     ${d.commentaire ? `<div class="commentaire">💬 ${escapeHtml(d.commentaire)}</div>` : ''}
     <div class="meta-grid">
@@ -239,6 +246,7 @@ function renderCard(d) {
       ${metaItem('Attribution', d.attribution)}
       ${metaItem(contratLabel, contratValue)}
       ${metaItem('Code Sap Fournisseur', d.codeSap)}
+      ${d.key === 'execution' ? metaItem('Jours restants', d.joursRestants !== null ? (d.joursRestants > 0 ? d.joursRestants + ' j.' : 'Échéance dépassée') : '') : ''}
     </div>
     ${contactLines.length ? `<div class="contact-block">${contactLines.join('')}</div>` : ''}
   </div>`;
@@ -249,8 +257,8 @@ function renderAll() {
   const q = normalize(document.getElementById('search-input') ? document.getElementById('search-input').value : '');
 
   let filtered = ALL_DOSSIERS.filter(d => {
+    if (activeFilter === 'echeance') return d.echeanceProche && (!q || d.searchBlob.includes(q));
     if (activeFilter !== 'all' && d.key !== activeFilter) return false;
-    if (echeanceOnly && !d.echeanceProche) return false;
     if (q && !d.searchBlob.includes(q)) return false;
     return true;
   });
@@ -264,16 +272,14 @@ function renderAll() {
   const groups = {};
   filtered.forEach(d => { (groups[d.key] = groups[d.key] || []).push(d); });
 
-  const order = ['attribue', 'encours', 'execution', 'echu', 'bloque', 'infructueux', 'nondemarre', 'autre'];
   let html = renderToolbarAndSummary();
 
-  order.forEach(key => {
+  STATUT_ORDER.forEach(key => {
     if (!groups[key] || groups[key].length === 0) return;
     const style = STATUT_STYLES[key];
     html += `<div class="group">
       <div class="group-header">
-        <span class="group-dot" style="background:${style.dot}"></span>
-        <span class="group-title" style="color:${style.color}">${style.label}</span>
+        <span class="statut-chip" style="background:${style.chipBg};color:${style.chipText}">${style.label}</span>
         <span class="group-count">${groups[key].length}</span>
         <span class="group-line"></span>
       </div>
@@ -290,22 +296,27 @@ function renderToolbarAndSummary() {
   const count = k => ALL_DOSSIERS.filter(d => d.key === k).length;
   const echeanceCount = ALL_DOSSIERS.filter(d => d.echeanceProche).length;
 
+  const categoryTiles = STATUT_ORDER
+    .filter(k => count(k) > 0)
+    .map(k => {
+      const s = STATUT_STYLES[k];
+      return `<div class="sum-card" data-filter="${k}" style="background:${s.chipBg};${activeFilter===k ? 'outline:3px solid '+s.accent+';' : ''}">
+        <div class="n" style="color:${s.chipText}">${count(k)}</div>
+        <div class="l" style="color:${s.chipText};opacity:.85">${s.label}</div>
+      </div>`;
+    }).join('');
+
   return `
     <div class="summary-grid">
       <div class="sum-card total" data-filter="all"><div class="n">${total}</div><div class="l">Total dossiers</div></div>
-      <div class="sum-card attribue" data-filter="attribue"><div class="n">${count('attribue')}</div><div class="l">Attribué</div></div>
-      <div class="sum-card execution" data-filter="execution"><div class="n">${count('execution')}</div><div class="l">En exécution</div></div>
-      <div class="sum-card echu" data-filter="echu"><div class="n">${count('echu')}</div><div class="l">Échu</div></div>
-      <div class="sum-card echeance ${echeanceOnly ? 'active' : ''}" data-echeance="1"><div class="n">⏳ ${echeanceCount}</div><div class="l">Arrivée à échéance (6-12 mois)</div></div>
+      ${categoryTiles}
+      <div class="sum-card echeance ${activeFilter==='echeance' ? 'active' : ''}" data-filter="echeance"><div class="n">⏳ ${echeanceCount}</div><div class="l">Arrivée à échéance (contrats en exécution, 6-12 mois)</div></div>
     </div>
     <div class="toolbar">
       <div class="search-box"><span class="icon">🔍</span><input type="text" id="search-input" placeholder="Rechercher un intitulé, une entreprise, une adresse…" value="${document.getElementById('search-input') ? escapeHtml(document.getElementById('search-input').value) : ''}"/></div>
       <div class="filter-tabs" id="filter-tabs">
         <button class="filter-tab ${activeFilter==='all'?'active':''}" data-filter="all">Tout</button>
-        <button class="filter-tab ${activeFilter==='attribue'?'active':''}" data-filter="attribue">Attribué</button>
-        <button class="filter-tab ${activeFilter==='encours'?'active':''}" data-filter="encours">Dossier en cours</button>
-        <button class="filter-tab ${activeFilter==='execution'?'active':''}" data-filter="execution">En exécution</button>
-        <button class="filter-tab ${activeFilter==='echu'?'active':''}" data-filter="echu">Échu</button>
+        ${STATUT_ORDER.filter(k => count(k) > 0).map(k => `<button class="filter-tab ${activeFilter===k?'active':''}" data-filter="${k}">${STATUT_STYLES[k].label}</button>`).join('')}
       </div>
     </div>`;
 }
@@ -323,8 +334,6 @@ function attachEvents() {
   document.querySelectorAll('.sum-card[data-filter]').forEach(card => {
     card.addEventListener('click', () => { activeFilter = card.dataset.filter; renderAll(); });
   });
-  const echCard = document.querySelector('.sum-card[data-echeance]');
-  if (echCard) echCard.addEventListener('click', () => { echeanceOnly = !echeanceOnly; renderAll(); });
 }
 
 async function init() {
@@ -347,16 +356,40 @@ async function init() {
       .filter(r => (r[COL.INTITULE] && r[COL.INTITULE].trim() !== '') || (r[COL.STATUT] && r[COL.STATUT].trim() !== ''))
       .map(r => {
         const key = statutKey(r[COL.STATUT]);
-        const echeanceDate = parseFrDate(r[COL.ECHEANCE]);
-        const echeanceProche = !!(echeanceDate && echeanceDate >= in6mo && echeanceDate <= in12mo);
         const pctStr = (r[COL.POURCENT] || '').replace('%', '').trim();
         const pct = parseFloat(pctStr.replace(',', '.')) || 0;
+
+        // Q = Date ODS (début), R = Durée du contrat (mois), S = Échéance (fin)
+        const dateODS = parseFrDate(r[COL.DATE_ODS]);
+        const dureeMois = parseFloat((r[COL.DUREE_CONTRAT] || '').toString().replace(',', '.')) || null;
+        let echeanceDate = parseFrDate(r[COL.ECHEANCE]);
+        if (!echeanceDate && dateODS && dureeMois) {
+          echeanceDate = new Date(dateODS);
+          echeanceDate.setMonth(echeanceDate.getMonth() + Math.round(dureeMois));
+        }
+
+        let pctConsomme = null, joursRestants = null;
+        if (echeanceDate) {
+          joursRestants = Math.round((echeanceDate - today) / (1000 * 60 * 60 * 24));
+          if (dateODS) {
+            const totalJours = Math.round((echeanceDate - dateODS) / (1000 * 60 * 60 * 24));
+            if (totalJours > 0) {
+              const elapsedJours = totalJours - joursRestants;
+              pctConsomme = Math.max(0, Math.min(100, Math.round((elapsedJours / totalJours) * 100)));
+            }
+          }
+        }
+
+        // "Arrivée à échéance" ne concerne que les contrats en cours d'exécution
+        const echeanceProche = !!(key === 'execution' && echeanceDate && echeanceDate >= in6mo && echeanceDate <= in12mo);
 
         const d = {
           key,
           intitule: r[COL.INTITULE] || '',
           etape: r[COL.ETAPE] || '',
           pct,
+          pctConsomme,
+          joursRestants,
           commentaire: r[COL.COMMENTAIRE] || '',
           dureePassation: (r[COL.DUREE_PASSATION] || '').trim(),
           attribution: r[COL.ATTRIBUTION] || '',
