@@ -705,7 +705,7 @@
         <span class="em">⏳</span>
         <div style="flex:1;">
           <div><span class="num" id="cpm-echeance-num">0</span> <span class="txt" style="font-weight:800;color:#9A5B0F;">dossier(s) arrivant à échéance</span></div>
-          <div class="txt">Échéance contractuelle entre 6 mois et 1 an — à anticiper</div>
+          <div class="txt">Contrats en exécution ayant consommé 60% ou plus de leur délai — à anticiper</div>
         </div>
         <span class="arrow">→</span>
       </a>
@@ -4775,8 +4775,6 @@
       let attribue = 0, execution = 0, echu = 0, autres = 0, echeanceProche = 0;
 
       const today = new Date(); today.setHours(0, 0, 0, 0);
-      const in6mo = new Date(today); in6mo.setMonth(in6mo.getMonth() + 6);
-      const in12mo = new Date(today); in12mo.setMonth(in12mo.getMonth() + 12);
 
       data.forEach(r => {
         const statut = cpmNormalize(r[8]);
@@ -4785,8 +4783,23 @@
         else if (statut.includes('echu') || statut.includes('termine')) echu++;
         else autres++;
 
-        const echeance = cpmParseFrDate(r[18]);
-        if (statut.includes('execution') && echeance && echeance >= in6mo && echeance <= in12mo) echeanceProche++;
+        if (statut.includes('execution')) {
+          const dateODS = cpmParseFrDate(r[16]);
+          const dureeMois = parseFloat((r[17] || '').toString().replace(',', '.')) || null;
+          let echeance = cpmParseFrDate(r[18]);
+          if (!echeance && dateODS && dureeMois) {
+            echeance = new Date(dateODS);
+            echeance.setMonth(echeance.getMonth() + Math.round(dureeMois));
+          }
+          if (echeance && dateODS) {
+            const totalJours = Math.round((echeance - dateODS) / (1000 * 60 * 60 * 24));
+            const joursRestants = Math.round((echeance - today) / (1000 * 60 * 60 * 24));
+            if (totalJours > 0) {
+              const pctConsomme = Math.max(0, Math.min(100, Math.round(((totalJours - joursRestants) / totalJours) * 100)));
+              if (pctConsomme >= 60) echeanceProche++;
+            }
+          }
+        }
       });
 
       const pct = n => total > 0 ? Math.round((n / total) * 100) + '% du total' : '—';
