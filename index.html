@@ -536,6 +536,25 @@
     justify-content: space-between;
   }
 
+  .card-footer-dual { gap: 10px; }
+  .card-footer-dual a { text-decoration: none; }
+  .btn-app-primary {
+    display: flex; align-items: center; gap: 6px; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff !important;
+    background: linear-gradient(90deg,#7C3AED,#C026D3);
+    padding: 9px 14px; border-radius: 10px; flex: 1;
+    box-shadow: 0 4px 14px rgba(124,58,237,0.35);
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-app-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124,58,237,0.45); }
+  .btn-sheet-secondary {
+    display: flex; align-items: center; gap: 5px; justify-content: center;
+    font-size: 11.5px; font-weight: 600; color: #6B7280 !important;
+    background: var(--gray-light); padding: 9px 12px; border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .btn-sheet-secondary:hover { background: #ECECEC; }
+
   .open-btn {
     font-size: 12px;
     font-weight: 600;
@@ -674,33 +693,10 @@
           <div class="cpm-num" id="cpm-total">—</div>
           <div class="cpm-lbl">Total dossiers</div>
         </div>
-        <div class="cpm-stat attribue">
-          <div class="cpm-num" id="cpm-attribue">—</div>
-          <div class="cpm-lbl">Attribué</div>
-          <div class="cpm-pct" id="cpm-attribue-pct">—</div>
-        </div>
-        <div class="cpm-stat execution">
-          <div class="cpm-num" id="cpm-execution">—</div>
-          <div class="cpm-lbl">En exécution</div>
-          <div class="cpm-pct" id="cpm-execution-pct">—</div>
-        </div>
-        <div class="cpm-stat echu">
-          <div class="cpm-num" id="cpm-echu">—</div>
-          <div class="cpm-lbl">Échu</div>
-          <div class="cpm-pct" id="cpm-echu-pct">—</div>
-        </div>
-        <div class="cpm-stat nondemarre">
-          <div class="cpm-num" id="cpm-autres">—</div>
-          <div class="cpm-lbl">Autres statuts</div>
-          <div class="cpm-pct" id="cpm-autres-pct">—</div>
-        </div>
+        <!-- Les tuiles par statut (Attribué, Dossier en cours, En exécution, Échu, Bloqué, Infructueux, Non démarré)
+             sont injectées dynamiquement par le JS ci-dessous, avec les couleurs exactes des puces du Sheet -->
       </div>
-      <div class="cpm-bar" id="cpm-bar">
-        <div class="cpm-bar-seg attribue" id="cpm-bar-attribue" style="width:0%;"></div>
-        <div class="cpm-bar-seg encours" id="cpm-bar-execution" style="width:0%;background:#1D6FA5;"></div>
-        <div class="cpm-bar-seg termine" id="cpm-bar-echu" style="width:0%;background:#9CA3AF;"></div>
-        <div class="cpm-bar-seg nondemarre" id="cpm-bar-autres" style="width:0%;"></div>
-      </div>
+      <div class="cpm-bar" id="cpm-bar"></div>
       <a class="cpm-echeance-alert" id="cpm-echeance-alert" href="Dossiers_CPM.html?echeance=1" style="display:none;">
         <span class="em">⏳</span>
         <div style="flex:1;">
@@ -756,12 +752,85 @@
   <!-- FILTER TABS -->
   <div class="filter-tabs" id="filter-tabs">
     <button class="filter-tab active" data-cat="all">Tout afficher</button>
+    <button class="filter-tab" data-cat="logistique">🚛 Logistique & Stocks</button>
     <button class="filter-tab" data-cat="pilotage">📊 Pilotage & Projets</button>
     <button class="filter-tab" data-cat="rh">👥 RH & Personnel</button>
-    <button class="filter-tab" data-cat="logistique">🚛 Logistique & Stocks</button>
     <button class="filter-tab" data-cat="admin">📁 Administration</button>
     <button class="filter-tab" data-cat="securite">🔐 Sécurité & Accès</button>
     <button class="filter-tab" data-cat="annuaire">📞 Annuaire Téléphonique</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- CAT 3 : LOGISTIQUE & STOCKS            -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="category" data-cat="logistique">
+    <div class="category-header">
+      <div class="cat-icon" style="background:#E8F5E9;">🚛</div>
+      <span class="cat-title">Logistique, Stocks & Sous-traitants</span>
+      <div class="cat-line" style="background:linear-gradient(90deg,#2E7D32,#66BB6A);"></div>
+      <span class="cat-count" style="background:#E8F5E9;color:#2E7D32;">7 apps</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card card-highlight" style="--cat-color-a:#7C3AED;--cat-color-b:#C026D3;cursor:default;">
+        <div class="card-top"><span class="card-emoji">🧾🪪</span><div class="badges"><span class="badge badge-new">Nouveau</span><span class="badge badge-ai">✨ IA</span></div></div>
+        <h3>Prises en Charge + Autorisation d'Accès</h3>
+        <p>Application unifiée et intelligente regroupant la création, la vérification et le suivi des prises en charge ainsi que des autorisations d'accès. Des fragments d'intelligence artificielle ont été utilisés pour automatiser la saisie et accélérer le traitement des dossiers.</p>
+        <div class="card-footer card-footer-dual">
+          <a class="btn-app-primary" href="https://script.google.com/macros/s/AKfycbxZMYNErrobWRhy5Op_KR-5vXafjrmlb-UPqYQhgR4/dev" target="_blank">🚀 Lancer l'application <span class="open-arrow">→</span></a>
+          <a class="btn-sheet-secondary" href="https://docs.google.com/spreadsheets/d/1htHz2rgdyjtH3Ne5E8QNprX2LZKauui4hF25Xse5S18/edit?gid=0#gid=0" target="_blank">📄 Feuille</a>
+        </div>
+      </div>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1pvGALmksWQ-oLkxXrv74yjZk6QGyVbqHzgWfc6ol6SE/edit?usp=sharing" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">🚗</span></div>
+        <h3>Affectation Véhicule – Division Infra</h3>
+        <p>Suivi des véhicules de service, affectations au personnel et gestion des plannings de disponibilité.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1OnDa-w4dyb2t1QyRk0DpoSJR5cmjJ9R1/edit?usp=sharing&ouid=114100570299093678332&rtpof=true&sd=true" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">📦</span></div>
+        <h3>Table Stock Magasin RNS</h3>
+        <p>Inventaire détaillé des stocks du magasin RNS avec double codification pour une traçabilité complète des articles.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1VOKT3OrWK3MVA9duOQxI2y--SDWuBB2O/edit?gid=1567107022#gid=1567107022" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">⚖️</span></div>
+        <h3>Suivi des Écarts Inventaire</h3>
+        <p>Contrôle et analyse des écarts matériels entre inventaire théorique et réel pour correction et régularisation.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1olPzVux6UclQVytVphOIFFvIxCEbhfgUJieqwipls7g/edit?gid=1473964080#gid=1473964080" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">🏢</span></div>
+        <h3>Vivier des Entreprises</h3>
+        <p>Base de données des prestataires, sous-traitants et partenaires avec critères de qualification et évaluation.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1_qZp9x1cgeq9dzZpJU4Bdpz1BGnuav02/edit?usp=sharing&ouid=114100570299093678332&rtpof=true&sd=true" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">📊</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
+        <h3>Statistiques Sous-traitants – Avril 2026</h3>
+        <p>Compilation des données statistiques sur les sous-traitants : effectifs déployés, missions réalisées et indicateurs de performance.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1RhMi3bdsGb8qsm7qRwQLCEjCvEJTsSuR5x5c7xHaxvE/edit?gid=0#gid=0" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">🧾</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
+        <h3>Prises en Charge</h3>
+        <p>Application dédiée à la création et au suivi des prises en charge du personnel de la division Infrastructure.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════ -->
@@ -901,77 +970,6 @@
         <h3>Vidéos Formation SAP</h3>
         <p>Ensemble des vidéos de formation SAP enregistrées, accessibles pour consultation et auto-formation du personnel.</p>
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ -->
-  <!-- CAT 3 : LOGISTIQUE & STOCKS            -->
-  <!-- ═══════════════════════════════════════ -->
-  <div class="category" data-cat="logistique">
-    <div class="category-header">
-      <div class="cat-icon" style="background:#E8F5E9;">🚛</div>
-      <span class="cat-title">Logistique, Stocks & Sous-traitants</span>
-      <div class="cat-line" style="background:linear-gradient(90deg,#2E7D32,#66BB6A);"></div>
-      <span class="cat-count" style="background:#E8F5E9;color:#2E7D32;">7 apps</span>
-    </div>
-    <div class="cards-grid">
-
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1pvGALmksWQ-oLkxXrv74yjZk6QGyVbqHzgWfc6ol6SE/edit?usp=sharing" target="_blank"
-         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
-        <div class="card-top"><span class="card-emoji">🚗</span></div>
-        <h3>Affectation Véhicule – Division Infra</h3>
-        <p>Suivi des véhicules de service, affectations au personnel et gestion des plannings de disponibilité.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1OnDa-w4dyb2t1QyRk0DpoSJR5cmjJ9R1/edit?usp=sharing&ouid=114100570299093678332&rtpof=true&sd=true" target="_blank"
-         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
-        <div class="card-top"><span class="card-emoji">📦</span></div>
-        <h3>Table Stock Magasin RNS</h3>
-        <p>Inventaire détaillé des stocks du magasin RNS avec double codification pour une traçabilité complète des articles.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1VOKT3OrWK3MVA9duOQxI2y--SDWuBB2O/edit?gid=1567107022#gid=1567107022" target="_blank"
-         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
-        <div class="card-top"><span class="card-emoji">⚖️</span></div>
-        <h3>Suivi des Écarts Inventaire</h3>
-        <p>Contrôle et analyse des écarts matériels entre inventaire théorique et réel pour correction et régularisation.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1olPzVux6UclQVytVphOIFFvIxCEbhfgUJieqwipls7g/edit?gid=1473964080#gid=1473964080" target="_blank"
-         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
-        <div class="card-top"><span class="card-emoji">🏢</span></div>
-        <h3>Vivier des Entreprises</h3>
-        <p>Base de données des prestataires, sous-traitants et partenaires avec critères de qualification et évaluation.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1_qZp9x1cgeq9dzZpJU4Bdpz1BGnuav02/edit?usp=sharing&ouid=114100570299093678332&rtpof=true&sd=true" target="_blank"
-         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
-        <div class="card-top"><span class="card-emoji">📊</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
-        <h3>Statistiques Sous-traitants – Avril 2026</h3>
-        <p>Compilation des données statistiques sur les sous-traitants : effectifs déployés, missions réalisées et indicateurs de performance.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-      <a class="card" href="https://docs.google.com/spreadsheets/d/1RhMi3bdsGb8qsm7qRwQLCEjCvEJTsSuR5x5c7xHaxvE/edit?gid=0#gid=0" target="_blank"
-         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
-        <div class="card-top"><span class="card-emoji">🧾</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
-        <h3>Prises en Charge</h3>
-        <p>Application dédiée à la création et au suivi des prises en charge du personnel de la division Infrastructure.</p>
-        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
-      </a>
-
-      <a class="card card-highlight" href="https://docs.google.com/spreadsheets/d/1htHz2rgdyjtH3Ne5E8QNprX2LZKauui4hF25Xse5S18/edit?gid=0#gid=0" target="_blank"
-         style="--cat-color-a:#7C3AED;--cat-color-b:#C026D3;">
-        <div class="card-top"><span class="card-emoji">🧾🪪</span><div class="badges"><span class="badge badge-new">Nouveau</span><span class="badge badge-ai">✨ IA</span></div></div>
-        <h3>Prises en Charge + Autorisation d'Accès</h3>
-        <p>Application unifiée et intelligente regroupant la création, la vérification et le suivi des prises en charge ainsi que des autorisations d'accès. Des fragments d'intelligence artificielle ont été utilisés pour automatiser la saisie et accélérer le traitement des dossiers.</p>
-        <div class="card-footer"><span class="open-btn" style="color:#7C3AED;">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
     </div>
@@ -4552,6 +4550,11 @@
   document.getElementById('search-input').addEventListener('input', function() {
     const q = this.value.toLowerCase().trim();
 
+    // Masquer les panneaux épinglés (Suivi CPM + Avancement Chantiers) pendant une recherche :
+    // ils sont déjà représentés par leurs propres cartes dans "Pilotage & Projets", qui restent, elles, dans les résultats.
+    const cpmPanel = document.querySelector('.cpm-panel');
+    if (cpmPanel) cpmPanel.style.display = q ? 'none' : '';
+
     document.querySelectorAll('.card').forEach(card => {
       const text = card.textContent.toLowerCase();
       card.style.display = text.includes(q) ? '' : 'none';
@@ -4764,6 +4767,30 @@
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
+  const CPM_STATUT_STYLES = {
+    'attribue':   { label: 'Attribué',             bg: '#7CD5B0', text: '#0B4A34' },
+    'encours':    { label: 'Dossier en cours',     bg: '#D4EDBC', text: '#3F6B2E' },
+    'execution':  { label: 'Contrat en exécution', bg: '#BFE1F6', text: '#155479' },
+    'echu':       { label: 'Contrat échu',         bg: '#8B8D91', text: '#FFFFFF' },
+    'bloque':     { label: 'Bloqué',                bg: '#B10202', text: '#FFFFFF' },
+    'infructueux':{ label: 'Infructueux',           bg: '#3D3D3D', text: '#FFFFFF' },
+    'nondemarre': { label: 'Non démarré',           bg: '#FFF6E8', text: '#8a6a2f' },
+    'autre':      { label: 'Autre',                 bg: '#F1F1F1', text: '#6B7280' }
+  };
+  const CPM_STATUT_ORDER = ['attribue', 'encours', 'execution', 'echu', 'bloque', 'infructueux', 'nondemarre', 'autre'];
+
+  function cpmStatutKey(rawStatut) {
+    const s = cpmNormalize(rawStatut);
+    if (s.includes('attribue')) return 'attribue';
+    if (s.includes('execution')) return 'execution';
+    if (s.includes('echu') || s.includes('termine')) return 'echu';
+    if (s.includes('en cours')) return 'encours';
+    if (s.includes('bloque')) return 'bloque';
+    if (s.includes('infructueux')) return 'infructueux';
+    if (s.includes('non demarre')) return 'nondemarre';
+    return 'autre';
+  }
+
   async function initCpmPanel() {
     try {
       const rows = await miniFetchCSV(CPM_CSV_URL);
@@ -4772,18 +4799,16 @@
       const data = rows.slice(headerIdx + 1).filter(r => (r[3] && r[3].trim() !== '') || (r[8] && r[8].trim() !== ''));
 
       const total = data.length;
-      let attribue = 0, execution = 0, echu = 0, autres = 0, echeanceProche = 0;
+      const counts = {}; CPM_STATUT_ORDER.forEach(k => counts[k] = 0);
+      let echeanceProche = 0;
 
       const today = new Date(); today.setHours(0, 0, 0, 0);
 
       data.forEach(r => {
-        const statut = cpmNormalize(r[8]);
-        if (statut.includes('attribue')) attribue++;
-        else if (statut.includes('execution')) execution++;
-        else if (statut.includes('echu') || statut.includes('termine')) echu++;
-        else autres++;
+        const key = cpmStatutKey(r[8]);
+        counts[key]++;
 
-        if (statut.includes('execution')) {
+        if (key === 'execution') {
           const dateODS = cpmParseFrDate(r[16]);
           const dureeMois = parseFloat((r[17] || '').toString().replace(',', '.')) || null;
           let echeance = cpmParseFrDate(r[18]);
@@ -4805,19 +4830,26 @@
       const pct = n => total > 0 ? Math.round((n / total) * 100) + '% du total' : '—';
 
       document.getElementById('cpm-total').textContent = total;
-      document.getElementById('cpm-attribue').textContent = attribue;
-      document.getElementById('cpm-attribue-pct').textContent = pct(attribue);
-      document.getElementById('cpm-execution').textContent = execution;
-      document.getElementById('cpm-execution-pct').textContent = pct(execution);
-      document.getElementById('cpm-echu').textContent = echu;
-      document.getElementById('cpm-echu-pct').textContent = pct(echu);
-      document.getElementById('cpm-autres').textContent = autres;
-      document.getElementById('cpm-autres-pct').textContent = pct(autres);
 
-      document.getElementById('cpm-bar-attribue').style.width = (total > 0 ? (attribue / total) * 100 : 0) + '%';
-      document.getElementById('cpm-bar-execution').style.width = (total > 0 ? (execution / total) * 100 : 0) + '%';
-      document.getElementById('cpm-bar-echu').style.width = (total > 0 ? (echu / total) * 100 : 0) + '%';
-      document.getElementById('cpm-bar-autres').style.width = (total > 0 ? (autres / total) * 100 : 0) + '%';
+      const grid = document.getElementById('cpm-stats-grid');
+      const bar = document.getElementById('cpm-bar');
+      CPM_STATUT_ORDER.forEach(key => {
+        if (counts[key] === 0) return;
+        const s = CPM_STATUT_STYLES[key];
+        const tile = document.createElement('div');
+        tile.className = 'cpm-stat';
+        tile.style.background = s.bg;
+        tile.innerHTML = `<div class="cpm-num" style="color:${s.text}">${counts[key]}</div>
+          <div class="cpm-lbl" style="color:${s.text};opacity:.9">${s.label}</div>
+          <div class="cpm-pct" style="color:${s.text};opacity:.75">${pct(counts[key])}</div>`;
+        grid.appendChild(tile);
+
+        const seg = document.createElement('div');
+        seg.className = 'cpm-bar-seg';
+        seg.style.width = (total > 0 ? (counts[key] / total) * 100 : 0) + '%';
+        seg.style.background = s.bg;
+        bar.appendChild(seg);
+      });
 
       document.getElementById('cpm-sub').innerHTML = total + ' dossier' + (total > 1 ? 's' : '') + ' suivis &nbsp;·&nbsp; <span style="font-weight:600;color:#E85D04;">🕒 mis à jour à l\'instant</span>';
 
