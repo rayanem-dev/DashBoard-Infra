@@ -228,8 +228,8 @@ function escapeHtml(s) {
 
 function renderCard(d) {
   const style = STATUT_STYLES[d.key] || STATUT_STYLES.autre;
-  const contratLabel = d.key === 'execution' ? 'N° Projet SAP' : 'N° Contrat';
-  const contratValue = d.key === 'execution' ? d.nProjetSap : d.nContrat;
+  const contratLabel = 'N° Contrat';
+  const contratValue = d.nContrat;
 
   // Pour les contrats en exécution : jauge = % de consommation du contrat (Q/R/S), pas le % Réalisé (souvent figé à 100%)
   const gaugePct = (d.key === 'execution' && d.pctConsomme !== null) ? d.pctConsomme : d.pct;
@@ -257,6 +257,7 @@ function renderCard(d) {
       ${metaItem('Durée Passation', d.dureePassation ? d.dureePassation + ' j.' : '')}
       ${metaItem('Attribution', d.attribution)}
       ${metaItem(contratLabel, contratValue)}
+      ${d.key === 'execution' ? metaItem('N° Projet SAP', d.nProjetSap) : ''}
       ${metaItem('Code Sap Fournisseur', d.codeSap)}
       ${d.key === 'execution' ? metaItem('Jours restants', d.joursRestants !== null ? (d.joursRestants > 0 ? d.joursRestants + ' j.' : 'Échéance dépassée') : '') : ''}
     </div>
