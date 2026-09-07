@@ -206,8 +206,8 @@
 
   .cpm-stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: 8px;
   }
 
   .chantiers-stats-grid {
@@ -217,10 +217,30 @@
   }
 
   .cpm-stat {
-    border-radius: 14px;
-    padding: 16px 14px;
+    border-radius: 12px;
+    padding: 10px 10px;
     position: relative;
     overflow: hidden;
+  }
+
+  .cpm-stats-grid .cpm-stat .cpm-num {
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .cpm-stats-grid .cpm-stat .cpm-lbl {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    line-height: 1.2;
+  }
+
+  .cpm-stats-grid .cpm-stat .cpm-pct {
+    font-size: 8.5px;
+    margin-top: 2px;
+    opacity: 0.75;
   }
 
   .cpm-stat .cpm-num {
@@ -241,6 +261,9 @@
     margin-top: 4px;
     opacity: 0.75;
   }
+
+  .cpm-stat.echeance-tile { cursor: pointer; text-decoration: none; display: block; border: 2px solid #E8940A; }
+  .cpm-stat.echeance-tile:hover { transform: translateY(-2px); }
 
   .cpm-stat.total { background: linear-gradient(135deg,#1A1A2E,#16213E); }
   .cpm-stat.total .cpm-num, .cpm-stat.total .cpm-lbl, .cpm-stat.total .cpm-pct { color: white; }
@@ -697,14 +720,6 @@
              sont injectées dynamiquement par le JS ci-dessous, avec les couleurs exactes des puces du Sheet -->
       </div>
       <div class="cpm-bar" id="cpm-bar"></div>
-      <a class="cpm-echeance-alert" id="cpm-echeance-alert" href="Dossiers_CPM.html?echeance=1" style="display:none;">
-        <span class="em">⏳</span>
-        <div style="flex:1;">
-          <div><span class="num" id="cpm-echeance-num">0</span> <span class="txt" style="font-weight:800;color:#9A5B0F;">dossier(s) arrivant à échéance</span></div>
-          <div class="txt">Contrats en exécution ayant consommé 60% ou plus de leur délai — à anticiper</div>
-        </div>
-        <span class="arrow">→</span>
-      </a>
     </div>
 
 
@@ -4854,8 +4869,13 @@
       document.getElementById('cpm-sub').innerHTML = total + ' dossier' + (total > 1 ? 's' : '') + ' suivis &nbsp;·&nbsp; <span style="font-weight:600;color:#E85D04;">🕒 mis à jour à l\'instant</span>';
 
       if (echeanceProche > 0) {
-        document.getElementById('cpm-echeance-num').textContent = echeanceProche;
-        document.getElementById('cpm-echeance-alert').style.display = 'flex';
+        const tile = document.createElement('a');
+        tile.className = 'cpm-stat echeance-tile';
+        tile.href = 'Dossiers_CPM.html?echeance=1';
+        tile.style.background = '#FFF3E0';
+        tile.innerHTML = `<div class="cpm-num" style="color:#E8940A;">⏳ ${echeanceProche}</div>
+          <div class="cpm-lbl" style="color:#9A5B0F;">Arrive à échéance</div>`;
+        grid.appendChild(tile);
       }
     } catch (e) {
       document.getElementById('cpm-sub').textContent = "Données indisponibles pour l'instant";
