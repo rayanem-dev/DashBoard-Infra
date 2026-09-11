@@ -32,7 +32,21 @@
   .stat-card .val { font-size: 21px; font-weight: 800; color: var(--gray-dark); }
   .stat-card.realise .val { color: var(--orange-main); }
   .stat-card.rar .val { color: var(--text-muted); }
-  .global-card { background: var(--white); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-card); border: 1px solid var(--border); display: flex; align-items: center; gap: 28px; margin-top: 14px; flex-wrap: wrap; }
+  .global-card { background: var(--white); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-card); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+  .gauge-h-bg { position: relative; width: 100%; border-radius: 30px; background: var(--gray-light); overflow: hidden; border: 1px solid var(--border); }
+  .gauge-h-fill { height: 100%; border-radius: 30px; transition: width 0.6s ease; }
+  .gauge-h-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.45); }
+  .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 14px; }
+  .service-card { background: var(--white); border-radius: 18px; padding: 20px 22px; box-shadow: var(--shadow-card); border: 1px solid var(--border); }
+  .service-card.disabled { background: var(--gray-light); opacity: 0.72; }
+  .service-card h4 { font-size: 13.5px; font-weight: 800; color: var(--gray-dark); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .service-card .svc-pct { font-size: 19px; font-weight: 800; color: var(--orange-main); margin-top: 8px; }
+  .service-card.disabled .svc-pct { color: var(--text-muted); }
+  .service-card .svc-note { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+  .svc-badge { font-size: 9.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  .svc-badge.pause { background: #E5E7EB; color: #6B7280; }
+  .svc-badge.active { background: #DCFCE7; color: var(--green); }
+  .svc-badge.empty { background: #FEF3C7; color: #B45309; }
   .donut-wrap { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
   .donut-wrap svg { transform: rotate(-90deg); }
   .donut-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
@@ -105,38 +119,50 @@
 // Laisse csvUrl vide ("") pour un chantier pas encore branché : il sera simplement ignoré.
 // ─────────────────────────────────────────────
 const CHANTIERS = [
-  { nom: "Les Abris", type: "boq",
-    csvUrl: "https://docs.google.com/spreadsheets/d/12LYR4984-NDKrKngTXDAkRJne0zpE_OF3836f-aYlfw/export?format=csv&gid=926886126" },
+  // ── SERVICE CONSTRUCTION — EN PAUSE ─────────────────────────
+  // Conservés ici pour réactivation ultérieure. csvUrl vidé volontairement
+  // (donc ignoré par le chargement et exclu de tous les calculs) tant que
+  // le service est en pause. URL d'origine gardée en commentaire.
+  { nom: "Les Abris", type: "boq", service: "Construction", actif: false,
+    csvUrl: "" }, // désactivé — URL d'origine : https://docs.google.com/spreadsheets/d/12LYR4984-NDKrKngTXDAkRJne0zpE_OF3836f-aYlfw/export?format=csv&gid=926886126
 
-  { nom: "Bassin CPF — Physique (Plate-forme/Talus)", type: "journal",
-    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTr_x5K-Xe1cDNL5zIxa3-KaWhqvU9uzUUM4zYtjvQRmNW9VdT9zgvDCzRWOHpsg/pub?gid=1697217269&single=true&output=csv" },
+  { nom: "Bassin CPF — Physique (Plate-forme/Talus)", type: "journal", service: "Construction", actif: false,
+    csvUrl: "" }, // désactivé — URL d'origine : https://docs.google.com/spreadsheets/d/e/2PACX-1vTTr_x5K-Xe1cDNL5zIxa3-KaWhqvU9uzUUM4zYtjvQRmNW9VdT9zgvDCzRWOHpsg/pub?gid=1697217269&single=true&output=csv
 
-  { nom: "Bassin CPF — Financier (GCB)", type: "boq",
-    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1157217160&single=true&output=csv" }, // onglet Export_Dashboard de 'attch valor' dans VER01
+  { nom: "Bassin CPF — Financier (GCB)", type: "boq", service: "Construction", actif: false,
+    csvUrl: "" }, // désactivé — URL d'origine : https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1157217160&single=true&output=csv (onglet Export_Dashboard de 'attch valor' dans VER01)
 
-  { nom: "Routes & ATIA (portefeuille)", type: "portfolio",
-    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1018327631&single=true&output=csv" }, // un seul onglet Export_Portfolio_Routes dans VER01, colonnes Nom/Montant_Prevu/Montant_Realise
+  { nom: "Routes & ATIA (portefeuille)", type: "portfolio", service: "Construction", actif: false,
+    csvUrl: "" }, // désactivé — URL d'origine : https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1018327631&single=true&output=csv (un seul onglet Export_Portfolio_Routes dans VER01)
 
-  { nom: "MCM", type: "boq", csvUrl: "" },
-  { nom: "Mosquée", type: "boq", csvUrl: "" },
-  { nom: "Piscines", type: "boq", csvUrl: "" },
-  { nom: "Studio", type: "boq", csvUrl: "" },
-  { nom: "Stades", type: "boq", csvUrl: "" },
+  { nom: "MCM", type: "boq", service: "Construction", actif: false, csvUrl: "" },
+  { nom: "Mosquée", type: "boq", service: "Construction", actif: false, csvUrl: "" },
+  { nom: "Piscines", type: "boq", service: "Construction", actif: false, csvUrl: "" },
+  { nom: "Studio", type: "boq", service: "Construction", actif: false, csvUrl: "" },
+  { nom: "Stades", type: "boq", service: "Construction", actif: false, csvUrl: "" },
 
-  // ── Service Génie Civil — suivi main d'œuvre / matériel (pas un % financier) ──
-  { nom: "Prestation Génie Civil", type: "workforce", service: "Génie Civil",
-    csvUrl: "https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/export?format=csv&gid=262596576" },
+  // ── Service Génie Civil (rattaché à Construction) — EN PAUSE ──
+  { nom: "Prestation Génie Civil", type: "workforce", service: "Construction", actif: false,
+    csvUrl: "" }, // désactivé — URL d'origine : https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/export?format=csv&gid=262596576
 
-  // ── Service Travaux Entretien (hors Division Infrastructure) ──
+  // ── SERVICE TRAVAUX ENTRETIEN — ACTIF ──────────────────────
+  // Forage RNS et Terrassement RNS sont des exemples-types de fiches suiveuses.
+  // À chaque nouvelle fiche reçue pour ce service, l'ajouter ici (même structure) —
+  // les calculs (stats + gauge) se refont automatiquement.
   // type "multiwell" = lit directement l'onglet "Tableau de Bord Global" source
   // et en extrait le tableau SYNTHÈSE MULTI-PUITS (un poste par puits, avec son propre %)
-  { nom: "Forage RNS — 3 puits d'eau", type: "multiwell", service: "Travaux Entretien",
+  { nom: "Forage RNS — 3 puits d'eau", type: "multiwell", service: "Travaux Entretien", actif: true,
     csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1809509458" },
 
   // type "itemized" = lit directement l'onglet "Tableau de Bord" source et en extrait
   // le tableau de cumul par item contractuel (un poste par ligne BPU, avec son propre %)
-  { nom: "Terrassement RNS (36 mois)", type: "itemized", service: "Travaux Entretien",
+  { nom: "Terrassement RNS (36 mois)", type: "itemized", service: "Travaux Entretien", actif: true,
     csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=2117456852" },
+
+  // ── SERVICE ÉLECTROMÉCANIQUE — ACTIF (liens à venir) ────────
+  // Ajouter ici les fiches suiveuses au fur et à mesure qu'elles arrivent.
+  { nom: "Prestation de Travaux de maintenance des installations électriques", type: "boq", service: "Électromécanique", actif: true, csvUrl: "" },
+  { nom: "Travaux de maintenance des installations de froid et climatisation", type: "boq", service: "Électromécanique", actif: true, csvUrl: "" },
 ];
 
 // ─────────────────────────────────────────────
@@ -411,13 +437,16 @@ async function loadWorkforce(chantier) {
     totalPresence, totalRepos, effectifMoyen, totalMateriel, parMois, materielParMois };
 }
 
-function renderDonut(pct) {
-  const r = 52, c = 2 * Math.PI * r;
-  const offset = c - (Math.min(100, pct) / 100) * c;
-  return `<div class="donut-wrap"><svg width="130" height="130" viewBox="0 0 130 130">
-      <circle cx="65" cy="65" r="${r}" fill="none" stroke="#F0F0EC" stroke-width="14"/>
-      <circle cx="65" cy="65" r="${r}" fill="none" stroke="#E85D04" stroke-width="14" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"/>
-    </svg><div class="donut-pct"><span class="num">${pct.toFixed(0)}%</span><span class="lbl">Réalisé</span></div></div>`;
+function renderGaugeH(pct, opts) {
+  opts = opts || {};
+  const big = opts.big !== false;
+  const height = big ? 24 : 12;
+  const fillColor = opts.color || 'linear-gradient(90deg, var(--orange-main), var(--orange-light))';
+  const showLabel = big;
+  return `<div class="gauge-h-bg" style="height:${height}px;">
+      <div class="gauge-h-fill" style="width:${Math.min(100, Math.max(0, pct))}%;background:${fillColor};"></div>
+      ${showLabel ? `<div class="gauge-h-label">${pct.toFixed(1)}%</div>` : ''}
+    </div>`;
 }
 
 function renderChantierCardBOQ(data, i) {
@@ -508,7 +537,7 @@ function toggleCard(i) { document.getElementById('card-' + i).classList.toggle('
 async function init() {
   const content = document.getElementById('content');
   try {
-    const active = CHANTIERS.filter(c => c.csvUrl && c.csvUrl.trim() !== '');
+    const active = CHANTIERS.filter(c => c.actif !== false && c.csvUrl && c.csvUrl.trim() !== '');
     const settled = await Promise.allSettled(active.map(c => {
       if (c.type === 'journal') return loadChantierJournal(c);
       if (c.type === 'portfolio') return loadPortfolio(c);
@@ -569,15 +598,39 @@ async function init() {
         </div>`;
     }
 
-    html += `<div class="global-card">${renderDonut(globalPct)}
-        <div class="global-info"><h3>Avancement global</h3>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(100,globalPct)}%"></div></div>
-        </div></div>
-      <div class="section-title">Détail par chantier — Service Génie Civil</div>`;
+    html += `<div class="global-card">
+        <div class="global-info">
+          <h3>Projets & Prestations — Division Infra</h3>
+          ${renderGaugeH(globalPct, { big: true })}
+          <div class="sub">Service Travaux Entretien — ${globalResults.length} prestation${globalResults.length > 1 ? 's' : ''} suivie${globalResults.length > 1 ? 's' : ''} (Service Construction en pause, exclu de ce calcul)</div>
+        </div>
+      </div>
+      <div class="section-title">Avancement global par service</div>
+      <div class="service-grid">
+        <div class="service-card disabled">
+          <h4>🏗️ Service Construction <span class="svc-badge pause">En pause</span></h4>
+          ${renderGaugeH(0, { big: false, color: '#D1D5DB' })}
+          <div class="svc-note">Chantiers gelés temporairement — données conservées dans le fichier, exclues du calcul global. Reprise ultérieure.</div>
+        </div>
+        <div class="service-card">
+          <h4>🚧 Service Travaux Entretien <span class="svc-badge active">Actif</span></h4>
+          ${renderGaugeH(globalPct, { big: false })}
+          <div class="svc-pct">${globalPct.toFixed(1)}%</div>
+          <div class="svc-note">${globalResults.length} prestation${globalResults.length > 1 ? 's' : ''} suivie${globalResults.length > 1 ? 's' : ''}</div>
+        </div>
+        <div class="service-card disabled">
+          <h4>🔧 Service Électromécanique <span class="svc-badge empty">À venir</span></h4>
+          ${renderGaugeH(0, { big: false, color: '#D1D5DB' })}
+          <div class="svc-note">Aucune fiche suiveuse renseignée pour l'instant — ajoutée dès réception.</div>
+        </div>
+      </div>`;
 
     const infraResults = results.filter(r => (r.type === 'boq' || r.type === 'journal') && r.service !== 'Travaux Entretien');
-    html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
-    html += workforceResults.map(r => renderChantierCardWorkforce(r, results.indexOf(r))).join('');
+    if (infraResults.length > 0 || workforceResults.length > 0) {
+      html += `<div class="section-title">Détail par chantier — Service Génie Civil</div>`;
+      html += infraResults.map((r, i) => r.type === 'journal' ? renderChantierCardJournal(r, results.indexOf(r)) : renderChantierCardBOQ(r, results.indexOf(r))).join('');
+      html += workforceResults.map(r => renderChantierCardWorkforce(r, results.indexOf(r))).join('');
+    }
 
     if (kpiResults.length > 0) {
       html += `<div class="section-title">Détail par chantier — Service Travaux Entretien</div>`;
