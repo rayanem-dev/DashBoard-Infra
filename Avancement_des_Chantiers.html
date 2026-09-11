@@ -88,6 +88,12 @@
   .badge-late { background: #FEE2E2; color: var(--red); }
   .badge-start { background: #FEF3C7; color: #B45309; }
   .badge-unit { background: var(--gray-light); color: var(--text-muted); font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .prevision-service-block { margin-top: 18px; }
+  .prevision-service-block h4 { font-size: 12.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+  .prevision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .prevision-card { background: var(--gray-light); border: 1px dashed var(--border); border-radius: 14px; padding: 14px 16px; opacity: 0.75; }
+  .prevision-card .pv-nom { font-size: 13px; font-weight: 700; color: var(--text-dark); }
+  .prevision-card .pv-meta { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
 </style>
 </head>
 <body>
@@ -206,6 +212,12 @@ function statusBadge(pct) {
   return '<span class="badge-status badge-start">Démarrage</span>';
 }
 
+function escapeHtml(str) {
+  return (str || '').toString()
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function fetchCSV(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
@@ -220,6 +232,89 @@ async function fetchCSV(url) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+// ─────────────────────────────────────────────
+// Intégration CPM — recensement automatique des projets "Contrat en exécution"
+// Lecture SEULE du CSV public de Suivi CPM (Dossiers_CPM.html n'est pas modifié).
+// Colonnes ajoutées à la fin du sheet CPM, sans toucher aux colonnes déjà
+// utilisées ailleurs :
+//   AG (index 32) = Service            (ex: "Service Construction")
+//   AH (index 33) = Nature du contrat  (ex: "Travaux", "Prestation")
+// ─────────────────────────────────────────────
+const CPM_CSV_URL = "https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/export?format=csv&gid=1963142469";
+const COL_CPM = { INTITULE: 3, STATUT: 8, SERVICE: 32, NATURE: 33 };
+const SERVICES_ORDRE = ["Construction", "Travaux Entretien", "Électromécanique", "Autre"];
+
+function normalizeTxt(str) {
+  return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function normalizeNom(str) { return normalizeTxt(str).replace(/[^a-z0-9]+/g, ' ').trim(); }
+
+function mapServiceCPM(raw) {
+  const s = normalizeTxt(raw);
+  if (s.includes('electromecanique')) return 'Électromécanique';
+  if (s.includes('entretien')) return 'Travaux Entretien';
+  if (s.includes('construction')) return 'Construction';
+  return 'Autre';
+}
+
+// Renvoie les dossiers CPM en "Contrat en exécution" qui n'ont pas encore de
+// fiche suiveuse branchée (csvUrl) dans CHANTIERS, groupés par service.
+async function loadCPMEnPrevision() {
+  const rows = await fetchCSV(CPM_CSV_URL);
+
+  // Repère la ligne d'en-têtes dynamiquement (même logique que Dossiers_CPM.html)
+  // pour ne pas dépendre d'un nombre fixe de lignes de titre dans le sheet.
+  let headerIdx = rows.findIndex(r => r.some(cell => normalizeTxt(cell) === 'statut'));
+  if (headerIdx === -1) headerIdx = 1;
+  const data = rows.slice(headerIdx + 1);
+
+  // Dossiers déjà suivis avec un vrai lien -> déjà affichés normalement ailleurs
+  // sur la page, on les exclut du recensement pour ne pas les dupliquer.
+  const nomsDejaBranches = new Set(
+    CHANTIERS.filter(c => c.csvUrl && c.csvUrl.trim() !== '').map(c => normalizeNom(c.nom))
+  );
+
+  const vus = new Set();
+  const resultat = [];
+  data.forEach(r => {
+    const intitule = (r[COL_CPM.INTITULE] || '').trim();
+    const statut = r[COL_CPM.STATUT] || '';
+    if (!intitule || !normalizeTxt(statut).includes('execution')) return;
+
+    const key = normalizeNom(intitule);
+    if (nomsDejaBranches.has(key) || vus.has(key)) return;
+    vus.add(key);
+
+    resultat.push({
+      nom: intitule,
+      service: mapServiceCPM(r[COL_CPM.SERVICE]),
+      nature: (r[COL_CPM.NATURE] || '').trim()
+    });
+  });
+  return resultat;
+}
+
+function renderPrevisionSection(enPrevision) {
+  if (!enPrevision || enPrevision.length === 0) return '';
+  const icone = { Construction: '🏗️', 'Travaux Entretien': '🚧', 'Électromécanique': '🔧', Autre: '📁' };
+  let html = `<div class="section-title">📋 Contrats en exécution à activer <span class="unit-tag">recensement automatique CPM</span></div>`;
+  SERVICES_ORDRE.forEach(svc => {
+    const items = enPrevision.filter(p => p.service === svc);
+    if (items.length === 0) return;
+    html += `<div class="prevision-service-block">
+      <h4>${icone[svc] || '📁'} Service ${escapeHtml(svc)} — ${items.length} en attente de branchement</h4>
+      <div class="prevision-grid">
+        ${items.map(p => `
+          <div class="prevision-card">
+            <div class="pv-nom">${escapeHtml(p.nom)}</div>
+            <div class="pv-meta">${p.nature ? escapeHtml(p.nature) + ' · ' : ''}Fiche suiveuse non branchée</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  return html;
 }
 
 // ─────────────────────────────────────────────
@@ -538,14 +633,20 @@ async function init() {
   const content = document.getElementById('content');
   try {
     const active = CHANTIERS.filter(c => c.actif !== false && c.csvUrl && c.csvUrl.trim() !== '');
-    const settled = await Promise.allSettled(active.map(c => {
-      if (c.type === 'journal') return loadChantierJournal(c);
-      if (c.type === 'portfolio') return loadPortfolio(c);
-      if (c.type === 'multiwell') return loadMultiwell(c);
-      if (c.type === 'itemized') return loadItemized(c);
-      if (c.type === 'workforce') return loadWorkforce(c);
-      return loadChantierBOQ(c);
-    }));
+    const [settled, cpmSettled] = await Promise.all([
+      Promise.allSettled(active.map(c => {
+        if (c.type === 'journal') return loadChantierJournal(c);
+        if (c.type === 'portfolio') return loadPortfolio(c);
+        if (c.type === 'multiwell') return loadMultiwell(c);
+        if (c.type === 'itemized') return loadItemized(c);
+        if (c.type === 'workforce') return loadWorkforce(c);
+        return loadChantierBOQ(c);
+      })),
+      // Le recensement CPM ne doit jamais bloquer le reste de la page : en cas
+      // d'échec (lien non accessible, etc.) on affiche juste 0 résultat.
+      loadCPMEnPrevision().catch(() => [])
+    ]);
+    const cpmEnPrevision = cpmSettled;
 
     const failed = [];
     const loaded = settled.map((s, i) => {
@@ -624,6 +725,8 @@ async function init() {
           <div class="svc-note">Aucune fiche suiveuse renseignée pour l'instant — ajoutée dès réception.</div>
         </div>
       </div>`;
+
+    html += renderPrevisionSection(cpmEnPrevision);
 
     const infraResults = results.filter(r => (r.type === 'boq' || r.type === 'journal') && r.service !== 'Travaux Entretien');
     if (infraResults.length > 0 || workforceResults.length > 0) {
