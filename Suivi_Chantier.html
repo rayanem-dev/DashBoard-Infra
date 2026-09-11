@@ -55,6 +55,17 @@
   .missing-card { opacity: 0.5; cursor: default; }
   .missing-card:hover { transform: none; box-shadow: var(--shadow-card); }
 
+  .disabled-card { opacity: 0.45; cursor: not-allowed; filter: grayscale(70%); position: relative; }
+  .disabled-card:hover { transform: none; box-shadow: var(--shadow-card); }
+  .disabled-card .pause-badge {
+    position: absolute; top: 8px; right: 10px; font-size: 9px; font-weight: 800;
+    background: #4B5563; color: white; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px;
+  }
+  .construction-note {
+    background: #F3F4F6; border: 1px dashed #9CA3AF; border-radius: 14px; padding: 12px 18px;
+    font-size: 12px; color: #4B5563; margin-bottom: 16px;
+  }
+
   .note-box { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 14px; padding: 14px 18px; font-size: 12.5px; color: #9A3412; margin-top: 24px; }
 </style>
 </head>
@@ -71,6 +82,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <a href="Avancement_des_Chantiers.html" class="nav-link">📊 Avancement Chantiers</a>
+      <a href="Dossiers_CPM.html" class="nav-link">📋 Suivi CPM</a>
       <a href="index.html" class="nav-link">← Accueil</a>
     </div>
   </div>
@@ -87,44 +99,27 @@
     <span class="arrow">→</span>
   </a>
 
-  <div class="section-title">Fiches suiveuses par projet — Service Construction</div>
-  <div class="link-grid">
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/edit?usp=sharing" target="_blank">
-      <span class="icon">🧱</span>
-      <div class="txt"><h3>Génie Civil (ETBE ZATOUT)</h3><p>Pointage MO/Matériel — synthèse annuelle</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1Sdf3uEgTlTerY4PQA_52ioysN6CxKOxio9EMPcqvOXw/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>Bassin CPF (tab de suivi)</h3><p>Suivi journalier — Plate-forme/Talus</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1pRtFlpkw3UK9B_RBR1jynRZ8tPYiYnErEvRUJjopSSQ/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>Les Abris</h3><p>Fiche suiveuse indépendante</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1jyq7txHbS-XfbOc8N-4AwOyv8JRl6nuzEmIgbwAiYDU/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>Stades</h3><p>Fiche suiveuse indépendante</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1noMG3iFyvLAPc0pWgoaLgeNbpMKTolv6iju-DUXjiVI/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>MCM</h3><p>Fiche suiveuse indépendante (Suivi_MCM000 — 3 lots)</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1NecYq1Deeler7RSuCbhWNjzAKJ3UkVgjjoDuCJ3yQHo/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>Mosquée</h3><p>Fiche suiveuse indépendante</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1kmCfSQoqz-aZcYGS3dfiD3H8_bdUWV9DNbK9t2tzcFU/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>Piscine</h3><p>Fiche suiveuse indépendante</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1zIPfQNy0w5FBv8NY1jyokNwPRjBayc0ZT0Ub2lHEuHg/edit?usp=drive_link" target="_blank">
-      <span class="icon">📋</span>
-      <div class="txt"><h3>Studio (cadre)</h3><p>Fiche suiveuse indépendante</p></div>
-    </a>
+  <div class="construction-note">
+    ⏸️ Le <strong>Service Construction</strong> est actuellement mis en pause — on se concentre sur les autres services. Les fiches restent listées ci-dessous (grisées) pour mémoire, mais ne sont pas accessibles pour l'instant.
   </div>
 
   <div class="section-title">Service Travaux Entretien</div>
   <div class="link-grid">
+    <div class="link-card disabled-card" title="Lien conservé, en attente — dis-le-moi quand tu veux l'activer">
+      <span class="pause-badge">À venir</span>
+      <span class="icon">💧</span>
+      <div class="txt"><h3>Prestation de Maintenance des Installations Hydrauliques</h3><p>Lien à venir</p></div>
+    </div>
+    <div class="link-card disabled-card" title="Lien conservé, en attente — dis-le-moi quand tu veux l'activer">
+      <span class="pause-badge">À venir</span>
+      <span class="icon">🏖️</span>
+      <div class="txt"><h3>Travaux de Dessablage Mécanique</h3><p>Lien à venir</p></div>
+    </div>
+    <div class="link-card disabled-card" title="Lien conservé, en attente — dis-le-moi quand tu veux l'activer">
+      <span class="pause-badge">À venir</span>
+      <span class="icon">🧹</span>
+      <div class="txt"><h3>Travaux de Dessablage Manuel</h3><p>Lien à venir</p></div>
+    </div>
     <a class="link-card" href="https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/edit?usp=drive_link" target="_blank">
       <span class="icon">💧</span>
       <div class="txt"><h3>Forage RNS (3 puits)</h3><p>Tableau de bord exécutif — 61,8% réalisé</p></div>
@@ -135,40 +130,77 @@
     </a>
   </div>
 
-  <div class="section-title">Plans de situation — par projet</div>
+  <div class="section-title">Service Électromécanique</div>
   <div class="link-grid">
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1-_CaqptG2mr7WVz14tgCvmnBkHq2Gd0umj9DEnMDLuE/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>ATIA</h3><p>Plan de situation</p></div>
-    </a>
+    <div class="link-card disabled-card" title="Lien conservé, en attente — dis-le-moi quand tu veux l'activer">
+      <span class="pause-badge">À venir</span>
+      <span class="icon">⚡</span>
+      <div class="txt"><h3>Prestation de Travaux de maintenance des installations électriques</h3><p>Lien à venir</p></div>
+    </div>
+    <div class="link-card disabled-card" title="Lien conservé, en attente — dis-le-moi quand tu veux l'activer">
+      <span class="pause-badge">À venir</span>
+      <span class="icon">❄️</span>
+      <div class="txt"><h3>Travaux de maintenance des installations de froid et climatisation</h3><p>Lien à venir</p></div>
+    </div>
+  </div>
+
+  <div class="section-title">Service Construction — en pause ⏸️</div>
+  <div class="link-grid">
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1x7r94U66Ec7t7jBzyzcuHCS1JCrYlPinYRvpFA5gQ3s/edit?usp=sharing">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">🧱</span>
+      <div class="txt"><h3>Génie Civil (ETBE ZATOUT)</h3><p>Pointage MO/Matériel — synthèse annuelle</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1Sdf3uEgTlTerY4PQA_52ioysN6CxKOxio9EMPcqvOXw/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>Bassin CPF (tab de suivi)</h3><p>Suivi journalier — Plate-forme/Talus</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1pRtFlpkw3UK9B_RBR1jynRZ8tPYiYnErEvRUJjopSSQ/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>Les Abris</h3><p>Fiche suiveuse indépendante</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1jyq7txHbS-XfbOc8N-4AwOyv8JRl6nuzEmIgbwAiYDU/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>Stades</h3><p>Fiche suiveuse indépendante</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1noMG3iFyvLAPc0pWgoaLgeNbpMKTolv6iju-DUXjiVI/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>MCM</h3><p>Fiche suiveuse indépendante (Suivi_MCM000 — 3 lots)</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1NecYq1Deeler7RSuCbhWNjzAKJ3UkVgjjoDuCJ3yQHo/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>Mosquée</h3><p>Fiche suiveuse indépendante</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1kmCfSQoqz-aZcYGS3dfiD3H8_bdUWV9DNbK9t2tzcFU/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>Piscine</h3><p>Fiche suiveuse indépendante</p></div>
+    </div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1zIPfQNy0w5FBv8NY1jyokNwPRjBayc0ZT0Ub2lHEuHg/edit?usp=drive_link">
+      <span class="pause-badge">Pause</span>
+      <span class="icon">📋</span>
+      <div class="txt"><h3>Studio (cadre)</h3><p>Fiche suiveuse indépendante</p></div>
+    </div>
+  </div>
+
+  <div class="section-title">Plans de situation — par projet (Service Construction, en pause)</div>
+  <div class="link-grid">
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1-_CaqptG2mr7WVz14tgCvmnBkHq2Gd0umj9DEnMDLuE/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>ATIA</h3><p>Plan de situation</p></div></div>
     <div class="link-card missing-card">
       <span class="icon">🗺️</span>
       <div class="txt"><h3>ENCC</h3><p>Lien manquant</p></div>
     </div>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1MWvURLJGH_46Z9mAnGdm04XxonQrg_7dWU9uC8JqCv0/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>GCB (Bassin CPF)</h3><p>Plan de situation</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1qBNcBUUZ0eBneDCJEcWWwvoVK2nnGGQtaEAoLofDvXE/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>MCM</h3><p>Plan de situation</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1G2SQinHacAvDAqNuzFbLPo-F3phL_mCMB5li3YDMMFc/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>Mosquée</h3><p>Plan de situation</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/10iZZKgDi5lKoZjuNf8M6cdMfaqraWIOsEDTgWfRkduk/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>Piscine</h3><p>Plan de situation</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/14IdNPWy2ymCIcI7TKE28gIRujQvuxYPpIxaBNRcwxWA/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>Stades</h3><p>Plan de situation</p></div>
-    </a>
-    <a class="link-card" href="https://docs.google.com/spreadsheets/d/1-_CaqptG2mr7WVz14tgCvmnBkHq2Gd0umj9DEnMDLuE/edit?usp=drive_link" target="_blank">
-      <span class="icon">🗺️</span>
-      <div class="txt"><h3>Studio (cadre)</h3><p>Plan de situation</p></div>
-    </a>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1MWvURLJGH_46Z9mAnGdm04XxonQrg_7dWU9uC8JqCv0/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>GCB (Bassin CPF)</h3><p>Plan de situation</p></div></div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1qBNcBUUZ0eBneDCJEcWWwvoVK2nnGGQtaEAoLofDvXE/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>MCM</h3><p>Plan de situation</p></div></div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1G2SQinHacAvDAqNuzFbLPo-F3phL_mCMB5li3YDMMFc/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>Mosquée</h3><p>Plan de situation</p></div></div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/10iZZKgDi5lKoZjuNf8M6cdMfaqraWIOsEDTgWfRkduk/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>Piscine</h3><p>Plan de situation</p></div></div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/14IdNPWy2ymCIcI7TKE28gIRujQvuxYPpIxaBNRcwxWA/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>Stades</h3><p>Plan de situation</p></div></div>
+    <div class="link-card disabled-card" data-href="https://docs.google.com/spreadsheets/d/1-_CaqptG2mr7WVz14tgCvmnBkHq2Gd0umj9DEnMDLuE/edit?usp=drive_link"><span class="pause-badge">Pause</span><span class="icon">🗺️</span><div class="txt"><h3>Studio (cadre)</h3><p>Plan de situation</p></div></div>
   </div>
 
   <div class="section-title">Dossier projet complet (Drive)</div>
