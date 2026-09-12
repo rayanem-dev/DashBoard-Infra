@@ -366,6 +366,7 @@ async function loadElectrique(chantier) {
   const montantLivre = colMontantLivre !== -1 ? parseMontantFr(valueRow[colMontantLivre]) : 0;
 
   let pctDelai = null;
+  let delaiMotif = null;
   try {
     const cpmRows = await fetchCSV(CPM_CSV_URL);
     let headerIdx = cpmRows.findIndex(r => r.some(cell => normalizeTxt(cell) === 'statut'));
@@ -373,9 +374,18 @@ async function loadElectrique(chantier) {
     const data = cpmRows.slice(headerIdx + 1);
     const targetKey = normalizeTxt(chantier.nContrat).replace(/[^a-z0-9]/g, '');
     const match = data.find(r => normalizeTxt(r[COL_CPM.N_CONTRAT] || '').replace(/[^a-z0-9]/g, '') === targetKey);
-    if (match) {
-      const dateODS = parseFrDate(match[COL_CPM.DATE_ODS]);
-      const dureeMois = parseFloat((match[COL_CPM.DUREE_CONTRAT] || '').toString().replace(',', '.')) || null;
+    if (!match) {
+      delaiMotif = `Dossier CPM introuvable (n° contrat recherché : ${chantier.nContrat})`;
+    } else {
+      // Date ODS = date de départ du décompte du délai. Si absente dans le CPM, on utilise
+      // une date de secours saisie manuellement dans la config (chantier.delaiManuel), en
+      // attendant que la case "Date ODS" soit remplie côté Suivi CPM.
+      let dateODS = parseFrDate(match[COL_CPM.DATE_ODS]);
+      let dureeMois = parseFloat((match[COL_CPM.DUREE_CONTRAT] || '').toString().replace(',', '.')) || null;
+      if (!dateODS && chantier.delaiManuel && chantier.delaiManuel.dateDebut) {
+        dateODS = parseFrDate(chantier.delaiManuel.dateDebut);
+        if (chantier.delaiManuel.dureeMois) dureeMois = chantier.delaiManuel.dureeMois;
+      }
       let echeanceDate = parseFrDate(match[COL_CPM.ECHEANCE]);
       if (!echeanceDate && dateODS && dureeMois) {
         echeanceDate = new Date(dateODS);
@@ -389,15 +399,17 @@ async function loadElectrique(chantier) {
           const elapsedJours = totalJours - joursRestants;
           pctDelai = Math.max(0, Math.min(100, Math.round((elapsedJours / totalJours) * 100)));
         }
+      } else {
+        delaiMotif = "Dossier CPM trouvé, mais la Date ODS (et/ou l'Échéance) n'est pas renseignée — à compléter dans Suivi CPM";
       }
     }
-  } catch (e) { /* CPM indisponible -> on affiche quand même la jauge de consommation seule */ }
+  } catch (e) { delaiMotif = "Suivi CPM injoignable pour le moment"; }
 
   const pctGlobal = pctDelai !== null ? (pctConso + pctDelai) / 2 : pctConso;
 
   return {
     type: 'electrique', service: chantier.service, nom: chantier.nom,
-    pct: pctGlobal, pctGlobal, pctConso, pctDelai,
+    pct: pctGlobal, pctGlobal, pctConso, pctDelai, delaiMotif,
     montantTotal, montantLivre
   };
 }
@@ -671,7 +683,7 @@ function renderChantierCardElectrique(data, i) {
         <div class="tg-item">
           <div class="tg-label">⏳ Délai d'exécution</div>
           ${renderGaugeH(data.pctDelai !== null ? data.pctDelai : 0, { big: false, color: 'linear-gradient(90deg,#6366F1,#818CF8)' })}
-          <div class="tg-sub">${data.pctDelai !== null ? data.pctDelai.toFixed(1) + '% du délai contractuel consommé' : 'Dossier CPM correspondant introuvable'}</div>
+          <div class="tg-sub">${data.pctDelai !== null ? data.pctDelai.toFixed(1) + '% du délai contractuel consommé' : (data.delaiMotif || 'Délai non calculable')}</div>
         </div>
         <div class="tg-item">
           <div class="tg-label">📦 Consommation du marché</div>
@@ -733,48 +745,59 @@ function renderChantierCardWorkforce(data, i) {
     </div>`;
 }
 
+// ─────────────────────────────────────────────
+// computeStats() — calcule toutes les données (chantiers + CPM), sans toucher au DOM.
+// Isolé de init() exprès : index.html peut charger ce fichier et appeler cette
+// fonction directement pour récupérer exactement les mêmes chiffres (même source
+// de vérité), sans dupliquer la liste des chantiers ni la logique de calcul.
+// ─────────────────────────────────────────────
+async function computeStats() {
+  const active = CHANTIERS.filter(c => c.actif !== false && c.csvUrl && c.csvUrl.trim() !== '');
+  const [settled, cpmSettled] = await Promise.all([
+    Promise.allSettled(active.map(c => {
+      if (c.type === 'journal') return loadChantierJournal(c);
+      if (c.type === 'portfolio') return loadPortfolio(c);
+      if (c.type === 'multiwell') return loadMultiwell(c);
+      if (c.type === 'itemized') return loadItemized(c);
+      if (c.type === 'workforce') return loadWorkforce(c);
+      if (c.type === 'electrique') return loadElectrique(c);
+      return loadChantierBOQ(c);
+    })),
+    // Le recensement CPM ne doit jamais bloquer le reste : en cas d'échec on renvoie juste 0 résultat.
+    loadCPMEnPrevision().catch(() => [])
+  ]);
+  const cpmEnPrevision = cpmSettled;
+
+  const failed = [];
+  const loaded = settled.map((s, i) => {
+    if (s.status === 'fulfilled') return s.value;
+    failed.push({ nom: active[i].nom, error: s.reason && s.reason.message ? s.reason.message : String(s.reason) });
+    return null;
+  }).filter(v => v !== null);
+  // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
+  const results = loaded.flat();
+
+  const boqResults = results.filter(r => r.type === 'boq' && r.service !== 'Travaux Entretien');
+  const journalResults = results.filter(r => r.type === 'journal');
+  const kpiResults = results.filter(r => r.service === 'Travaux Entretien');
+  const workforceResults = results.filter(r => r.type === 'workforce');
+  const electriqueResults = results.filter(r => r.type === 'electrique');
+  // Avancement global : services actifs (Travaux Entretien + Électromécanique) — le Service
+  // Construction (boq/journal/portfolio + Génie Civil) est exclu tant qu'il est en pause.
+  const globalResults = results.filter(r => r.service === 'Travaux Entretien' || r.service === 'Électromécanique');
+  const globalPct = globalResults.length > 0 ? globalResults.reduce((s, r) => s + r.pct, 0) / globalResults.length : 0;
+  const electroPct = electriqueResults.length > 0 ? electriqueResults.reduce((s, r) => s + r.pct, 0) / electriqueResults.length : 0;
+  const kpiPct = kpiResults.length > 0 ? kpiResults.reduce((s, r) => s + r.pct, 0) / kpiResults.length : 0;
+
+  return { results, boqResults, journalResults, kpiResults, workforceResults, electriqueResults, globalResults, globalPct, electroPct, kpiPct, cpmEnPrevision, failed };
+}
+
 function toggleCard(i) { document.getElementById('card-' + i).classList.toggle('open'); }
 
 async function init() {
   const content = document.getElementById('content');
   try {
-    const active = CHANTIERS.filter(c => c.actif !== false && c.csvUrl && c.csvUrl.trim() !== '');
-    const [settled, cpmSettled] = await Promise.all([
-      Promise.allSettled(active.map(c => {
-        if (c.type === 'journal') return loadChantierJournal(c);
-        if (c.type === 'portfolio') return loadPortfolio(c);
-        if (c.type === 'multiwell') return loadMultiwell(c);
-        if (c.type === 'itemized') return loadItemized(c);
-        if (c.type === 'workforce') return loadWorkforce(c);
-        if (c.type === 'electrique') return loadElectrique(c);
-        return loadChantierBOQ(c);
-      })),
-      // Le recensement CPM ne doit jamais bloquer le reste de la page : en cas
-      // d'échec (lien non accessible, etc.) on affiche juste 0 résultat.
-      loadCPMEnPrevision().catch(() => [])
-    ]);
-    const cpmEnPrevision = cpmSettled;
-
-    const failed = [];
-    const loaded = settled.map((s, i) => {
-      if (s.status === 'fulfilled') return s.value;
-      failed.push({ nom: active[i].nom, error: s.reason && s.reason.message ? s.reason.message : String(s.reason) });
-      return null;
-    }).filter(v => v !== null);
-    // "portfolio" renvoie un tableau de chantiers : on aplatit tout en une seule liste
-    const results = loaded.flat();
-
-    const boqResults = results.filter(r => r.type === 'boq' && r.service !== 'Travaux Entretien');
-    const journalResults = results.filter(r => r.type === 'journal');
-    const kpiResults = results.filter(r => r.service === 'Travaux Entretien');
-    const workforceResults = results.filter(r => r.type === 'workforce');
-    const electriqueResults = results.filter(r => r.type === 'electrique');
-    // Avancement global : services actifs (Travaux Entretien + Électromécanique) — le Service
-    // Construction (boq/journal/portfolio + Génie Civil) est exclu tant qu'il est en pause.
-    const globalResults = results.filter(r => r.service === 'Travaux Entretien' || r.service === 'Électromécanique');
-    const globalPct = globalResults.length > 0 ? globalResults.reduce((s, r) => s + r.pct, 0) / globalResults.length : 0;
-    const electroPct = electriqueResults.length > 0 ? electriqueResults.reduce((s, r) => s + r.pct, 0) / electriqueResults.length : 0;
-    const kpiPct = kpiResults.length > 0 ? kpiResults.reduce((s, r) => s + r.pct, 0) / kpiResults.length : 0;
+    const { results, boqResults, journalResults, kpiResults, workforceResults, electriqueResults, globalResults, globalPct, electroPct, kpiPct, cpmEnPrevision, failed } = await computeStats();
 
     let html = `<div class="section-title">Vue globale</div>`;
 
