@@ -81,6 +81,9 @@
   .sub-metric .sm-name { font-weight: 600; color: var(--text-dark); }
   .sub-metric .sm-pct { font-weight: 700; color: var(--teal); }
   .sub-metric .sm-nums { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .triple-gauge-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .tg-item .tg-label { font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+  .tg-item .tg-sub { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
   .loading, .error-box { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
   .error-box { color: var(--red); }
   .badge-status { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -167,7 +170,9 @@ const CHANTIERS = [
 
   // ── SERVICE ÉLECTROMÉCANIQUE — ACTIF (liens à venir) ────────
   // Ajouter ici les fiches suiveuses au fur et à mesure qu'elles arrivent.
-  { nom: "Prestation de Travaux de maintenance des installations électriques", type: "boq", service: "Électromécanique", actif: true, csvUrl: "" },
+  { nom: "Maintenance des Installations Électriques", type: "electrique", service: "Électromécanique", actif: true,
+    nContrat: "I/30/RNS/INFRA/2024",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1Pk0n5UNT8yf5A7yZNe8rwHyevn7XHsB4/export?format=csv&gid=627222972" },
   { nom: "Travaux de maintenance des installations de froid et climatisation", type: "boq", service: "Électromécanique", actif: true, csvUrl: "" },
 ];
 
@@ -243,13 +248,33 @@ async function fetchCSV(url) {
 //   AH (index 33) = Nature du contrat  (ex: "Travaux", "Prestation")
 // ─────────────────────────────────────────────
 const CPM_CSV_URL = "https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/export?format=csv&gid=1963142469";
-const COL_CPM = { INTITULE: 3, STATUT: 8, SERVICE: 32, NATURE: 33 };
+const COL_CPM = { INTITULE: 3, STATUT: 8, N_CONTRAT: 13, DATE_ODS: 16, DUREE_CONTRAT: 17, ECHEANCE: 18, SERVICE: 32, NATURE: 33 };
 const SERVICES_ORDRE = ["Construction", "Travaux Entretien", "Électromécanique", "Autre"];
 
 function normalizeTxt(str) {
   return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 function normalizeNom(str) { return normalizeTxt(str).replace(/[^a-z0-9]+/g, ' ').trim(); }
+
+// Même parseur de date FR (JJ/MM/AAAA) que Dossiers_CPM.html, pour rester cohérent
+// avec le calcul du délai déjà utilisé là-bas.
+function parseFrDate(str) {
+  if (!str) return null;
+  const parts = str.trim().split('/');
+  if (parts.length !== 3) return null;
+  const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+  if (!d || !m || !y || y < 1990) return null;
+  const dt = new Date(y, m - 1, d);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
+// Nettoie un montant écrit "41 491 564" ou "10 481 190 DA" -> nombre JS
+function parseMontantFr(str) {
+  if (!str) return 0;
+  const cleaned = str.toString().replace(/DA/gi, '').replace(/[^\d,.\-]/g, '');
+  const num = parseFloat(cleaned.replace(',', '.'));
+  return isNaN(num) ? 0 : num;
+}
 
 function mapServiceCPM(raw) {
   const s = normalizeTxt(raw);
@@ -315,6 +340,66 @@ function renderPrevisionSection(enPrevision) {
     </div>`;
   });
   return html;
+}
+
+// ─────────────────────────────────────────────
+// Chargement — type "electrique" (contrat de fournitures avec stock)
+// Jauge globale = moyenne de :
+//   1) % délai consommé du contrat (calculé depuis le dossier CPM correspondant,
+//      même formule que Dossiers_CPM.html : (aujourd'hui - date ODS) / (échéance - date ODS))
+//   2) % de consommation du marché, lu directement dans la cellule
+//      "📈 AVANCEMENT GLOBAL" de l'onglet "Tableau de bord" du sheet source
+// ─────────────────────────────────────────────
+async function loadElectrique(chantier) {
+  const rows = await fetchCSV(chantier.csvUrl);
+  // Détection dynamique de la ligne d'en-têtes du bloc "tableau de bord" (plutôt qu'un
+  // numéro de ligne fixe) : robuste si des lignes vides sont filtrées ou si la mise en
+  // page du sheet change légèrement.
+  const headerRowIdx = rows.findIndex(r => r.some(cell => normalizeTxt(cell).includes('avancement global')));
+  const headerRow = headerRowIdx !== -1 ? rows[headerRowIdx] : [];
+  const valueRow = headerRowIdx !== -1 ? (rows[headerRowIdx + 1] || []) : [];
+  const colAvancement = headerRow.findIndex(c => normalizeTxt(c).includes('avancement global'));
+  const colMontantTotal = headerRow.findIndex(c => normalizeTxt(c).includes('montant total'));
+  const colMontantLivre = headerRow.findIndex(c => normalizeTxt(c).includes('montant livr'));
+  const pctConso = colAvancement !== -1 ? (parseFloat((valueRow[colAvancement] || '').replace('%', '').replace(',', '.').trim()) || 0) : 0;
+  const montantTotal = colMontantTotal !== -1 ? parseMontantFr(valueRow[colMontantTotal]) : 0;
+  const montantLivre = colMontantLivre !== -1 ? parseMontantFr(valueRow[colMontantLivre]) : 0;
+
+  let pctDelai = null;
+  try {
+    const cpmRows = await fetchCSV(CPM_CSV_URL);
+    let headerIdx = cpmRows.findIndex(r => r.some(cell => normalizeTxt(cell) === 'statut'));
+    if (headerIdx === -1) headerIdx = 1;
+    const data = cpmRows.slice(headerIdx + 1);
+    const targetKey = normalizeTxt(chantier.nContrat).replace(/[^a-z0-9]/g, '');
+    const match = data.find(r => normalizeTxt(r[COL_CPM.N_CONTRAT] || '').replace(/[^a-z0-9]/g, '') === targetKey);
+    if (match) {
+      const dateODS = parseFrDate(match[COL_CPM.DATE_ODS]);
+      const dureeMois = parseFloat((match[COL_CPM.DUREE_CONTRAT] || '').toString().replace(',', '.')) || null;
+      let echeanceDate = parseFrDate(match[COL_CPM.ECHEANCE]);
+      if (!echeanceDate && dateODS && dureeMois) {
+        echeanceDate = new Date(dateODS);
+        echeanceDate.setMonth(echeanceDate.getMonth() + Math.round(dureeMois));
+      }
+      if (dateODS && echeanceDate) {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const totalJours = Math.round((echeanceDate - dateODS) / (1000 * 60 * 60 * 24));
+        const joursRestants = Math.round((echeanceDate - today) / (1000 * 60 * 60 * 24));
+        if (totalJours > 0) {
+          const elapsedJours = totalJours - joursRestants;
+          pctDelai = Math.max(0, Math.min(100, Math.round((elapsedJours / totalJours) * 100)));
+        }
+      }
+    }
+  } catch (e) { /* CPM indisponible -> on affiche quand même la jauge de consommation seule */ }
+
+  const pctGlobal = pctDelai !== null ? (pctConso + pctDelai) / 2 : pctConso;
+
+  return {
+    type: 'electrique', service: chantier.service, nom: chantier.nom,
+    pct: pctGlobal, pctGlobal, pctConso, pctDelai,
+    montantTotal, montantLivre
+  };
 }
 
 // ─────────────────────────────────────────────
@@ -577,6 +662,27 @@ function renderChantierCardKPI(data, i) {
       <div class="lines-wrap">${lines}</div></div>`;
 }
 
+function renderChantierCardElectrique(data, i) {
+  return `<div class="chantier-card" id="card-${i}">
+      <div class="chantier-head"><h3>${data.nom} <span class="badge-unit" style="background:#FEF3C7;color:#92400E;">Fournitures — stock</span> ${statusBadge(data.pctGlobal)}</h3>
+        <span class="chantier-pct">${data.pctGlobal.toFixed(1)}%</span></div>
+      <div class="chantier-bar-bg"><div class="chantier-bar-fill" style="width:${data.pctGlobal}%"></div></div>
+      <div class="triple-gauge-wrap">
+        <div class="tg-item">
+          <div class="tg-label">⏳ Délai d'exécution</div>
+          ${renderGaugeH(data.pctDelai !== null ? data.pctDelai : 0, { big: false, color: 'linear-gradient(90deg,#6366F1,#818CF8)' })}
+          <div class="tg-sub">${data.pctDelai !== null ? data.pctDelai.toFixed(1) + '% du délai contractuel consommé' : 'Dossier CPM correspondant introuvable'}</div>
+        </div>
+        <div class="tg-item">
+          <div class="tg-label">📦 Consommation du marché</div>
+          ${renderGaugeH(data.pctConso, { big: false })}
+          <div class="tg-sub">${data.pctConso.toFixed(1)}% du montant contractuel consommé</div>
+        </div>
+      </div>
+      <div class="chantier-meta"><span>Montant contrat : ${formatDA(data.montantTotal)}</span><span>Consommé : ${formatDA(data.montantLivre)}</span></div>
+    </div>`;
+}
+
 function renderChantierCardJournal(data, i) {
   const sub = `
     <div class="sub-metric"><div class="sm-top"><span class="sm-name">Plate-forme</span><span class="sm-pct">${data.pfTaux.toFixed(0)}%</span></div>
@@ -640,6 +746,7 @@ async function init() {
         if (c.type === 'multiwell') return loadMultiwell(c);
         if (c.type === 'itemized') return loadItemized(c);
         if (c.type === 'workforce') return loadWorkforce(c);
+        if (c.type === 'electrique') return loadElectrique(c);
         return loadChantierBOQ(c);
       })),
       // Le recensement CPM ne doit jamais bloquer le reste de la page : en cas
@@ -661,10 +768,13 @@ async function init() {
     const journalResults = results.filter(r => r.type === 'journal');
     const kpiResults = results.filter(r => r.service === 'Travaux Entretien');
     const workforceResults = results.filter(r => r.type === 'workforce');
-    // Avancement global : uniquement les services actifs (Travaux Entretien) — le Service Construction
-    // (boq/journal/portfolio + Génie Civil) est exclu de ce calcul tant qu'il est en pause.
-    const globalResults = results.filter(r => r.service === 'Travaux Entretien');
+    const electriqueResults = results.filter(r => r.type === 'electrique');
+    // Avancement global : services actifs (Travaux Entretien + Électromécanique) — le Service
+    // Construction (boq/journal/portfolio + Génie Civil) est exclu tant qu'il est en pause.
+    const globalResults = results.filter(r => r.service === 'Travaux Entretien' || r.service === 'Électromécanique');
     const globalPct = globalResults.length > 0 ? globalResults.reduce((s, r) => s + r.pct, 0) / globalResults.length : 0;
+    const electroPct = electriqueResults.length > 0 ? electriqueResults.reduce((s, r) => s + r.pct, 0) / electriqueResults.length : 0;
+    const kpiPct = kpiResults.length > 0 ? kpiResults.reduce((s, r) => s + r.pct, 0) / kpiResults.length : 0;
 
     let html = `<div class="section-title">Vue globale</div>`;
 
@@ -703,7 +813,7 @@ async function init() {
         <div class="global-info">
           <h3>Projets & Prestations — Division Infra</h3>
           ${renderGaugeH(globalPct, { big: true })}
-          <div class="sub">Service Travaux Entretien — ${globalResults.length} prestation${globalResults.length > 1 ? 's' : ''} suivie${globalResults.length > 1 ? 's' : ''} (Service Construction en pause, exclu de ce calcul)</div>
+          <div class="sub">${globalResults.length} prestation${globalResults.length > 1 ? 's' : ''} suivie${globalResults.length > 1 ? 's' : ''} — Travaux Entretien + Électromécanique (Service Construction en pause, exclu de ce calcul)</div>
         </div>
       </div>
       <div class="section-title">Avancement global par service</div>
@@ -715,15 +825,22 @@ async function init() {
         </div>
         <div class="service-card">
           <h4>🚧 Service Travaux Entretien <span class="svc-badge active">Actif</span></h4>
-          ${renderGaugeH(globalPct, { big: false })}
-          <div class="svc-pct">${globalPct.toFixed(1)}%</div>
-          <div class="svc-note">${globalResults.length} prestation${globalResults.length > 1 ? 's' : ''} suivie${globalResults.length > 1 ? 's' : ''}</div>
+          ${renderGaugeH(kpiPct, { big: false })}
+          <div class="svc-pct">${kpiPct.toFixed(1)}%</div>
+          <div class="svc-note">${kpiResults.length} prestation${kpiResults.length > 1 ? 's' : ''} suivie${kpiResults.length > 1 ? 's' : ''}</div>
         </div>
+        ${electriqueResults.length > 0 ? `
+        <div class="service-card">
+          <h4>🔧 Service Électromécanique <span class="svc-badge active">Actif</span></h4>
+          ${renderGaugeH(electroPct, { big: false })}
+          <div class="svc-pct">${electroPct.toFixed(1)}%</div>
+          <div class="svc-note">${electriqueResults.length} prestation${electriqueResults.length > 1 ? 's' : ''} suivie${electriqueResults.length > 1 ? 's' : ''}</div>
+        </div>` : `
         <div class="service-card disabled">
           <h4>🔧 Service Électromécanique <span class="svc-badge empty">À venir</span></h4>
           ${renderGaugeH(0, { big: false, color: '#D1D5DB' })}
           <div class="svc-note">Aucune fiche suiveuse renseignée pour l'instant — ajoutée dès réception.</div>
-        </div>
+        </div>`}
       </div>`;
 
     html += renderPrevisionSection(cpmEnPrevision);
@@ -738,6 +855,11 @@ async function init() {
     if (kpiResults.length > 0) {
       html += `<div class="section-title">Détail par chantier — Service Travaux Entretien</div>`;
       html += kpiResults.map(r => renderChantierCardKPI(r, results.indexOf(r))).join('');
+    }
+
+    if (electriqueResults.length > 0) {
+      html += `<div class="section-title">Détail par chantier — Service Électromécanique</div>`;
+      html += electriqueResults.map(r => renderChantierCardElectrique(r, results.indexOf(r))).join('');
     }
 
     if (failed.length > 0) {
