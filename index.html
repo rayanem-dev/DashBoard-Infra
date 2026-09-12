@@ -4638,190 +4638,36 @@
   });
 
   // ─────────────────────────────────────────────
-  // Mini-panel "Avancement Chantiers" — même source que Avancement_des_Chantiers.html
+  // Mini-panel "Avancement Chantiers" — extraction dynamique depuis Avancement_des_Chantiers.html.
+  // Plutôt que de dupliquer la liste des chantiers et la logique de calcul ici (source de
+  // décalage constatée : nouvelle fiche activée là-bas mais oubliée ici), on va chercher le
+  // fichier lui-même et on appelle sa fonction computeStats() — donc mêmes chiffres, toujours,
+  // sans rien à maintenir à deux endroits.
   // ─────────────────────────────────────────────
-  const CHANTIERS_MINI = [
-    { nom: "Les Abris", type: "boq",
-      csvUrl: "https://docs.google.com/spreadsheets/d/12LYR4984-NDKrKngTXDAkRJne0zpE_OF3836f-aYlfw/export?format=csv&gid=926886126" },
-    { nom: "Bassin CPF — Physique (Plate-forme/Talus)", type: "journal",
-      csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTr_x5K-Xe1cDNL5zIxa3-KaWhqvU9uzUUM4zYtjvQRmNW9VdT9zgvDCzRWOHpsg/pub?gid=1697217269&single=true&output=csv" },
-    { nom: "Bassin CPF — Financier (GCB)", type: "boq",
-      csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1157217160&single=true&output=csv" },
-    { nom: "Routes & ATIA (portefeuille)", type: "portfolio",
-      csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz2qFQksPbcK5AT7YI2BX6OSE5r14MID4umAs9i6L2r9NJh_lFbEFwDLspSshYgA/pub?gid=1018327631&single=true&output=csv" },
-    { nom: "MCM", type: "boq", csvUrl: "" },
-    { nom: "Mosquée", type: "boq", csvUrl: "" },
-    { nom: "Piscines", type: "boq", csvUrl: "" },
-    { nom: "Studio", type: "boq", csvUrl: "" },
-    { nom: "Stades", type: "boq", csvUrl: "" },
-
-    // Service Travaux Entretien
-    { nom: "Forage RNS — 3 puits d'eau", type: "kpi",
-      csvUrl: "https://docs.google.com/spreadsheets/d/1gD_aQEw7YUU2DBGMrJchqUGvuFuEeyn8EG9XHf7gxkw/export?format=csv&gid=1809509458",
-      cell: { row: 4, prevuCol: 0, realiseCol: 3 } },
-    { nom: "Terrassement RNS (36 mois)", type: "kpi",
-      csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=2117456852",
-      cell: { row: 3, prevuCol: 1, realiseCol: 4 } },
-
-    // Service Électromécanique
-    { nom: "Maintenance des Installations Électriques", type: "electrique", nContrat: "30.INFRA.24",
-      csvUrl: "https://docs.google.com/spreadsheets/d/1Pk0n5UNT8yf5A7yZNe8rwHyevn7XHsB4/export?format=csv&gid=627222972" },
-  ];
-
-  function miniParseCSV(text) {
-    const rows = [];
-    let row = [], field = '', inQuotes = false;
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i], next = text[i + 1];
-      if (inQuotes) {
-        if (c === '"' && next === '"') { field += '"'; i++; }
-        else if (c === '"') { inQuotes = false; }
-        else { field += c; }
-      } else {
-        if (c === '"') inQuotes = true;
-        else if (c === ',') { row.push(field); field = ''; }
-        else if (c === '\n' || c === '\r') {
-          if (field !== '' || row.length) { row.push(field); rows.push(row); row = []; field = ''; }
-          if (c === '\r' && next === '\n') i++;
-        } else field += c;
-      }
-    }
-    if (field !== '' || row.length) { row.push(field); rows.push(row); }
-    return rows.filter(r => r.some(f => f.trim() !== ''));
-  }
-
-  function miniParseNumberFR(str) {
-    if (!str) return 0;
-    const cleaned = str.toString().replace(/\s/g, '').replace('%', '').replace(',', '.');
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? 0 : n;
-  }
-
-  async function miniFetchCSV(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('fetch failed: ' + url);
-    const text = await res.text();
-    return miniParseCSV(text);
-  }
-
-  async function miniLoadBOQ(chantier) {
-    const rows = await miniFetchCSV(chantier.csvUrl);
-    const header = rows[0].map(h => h.trim());
-    const idx = { montantPrevu: header.indexOf('Montant_Prevu'), montantRealise: header.indexOf('Montant_Realise'), designation: header.indexOf('Designation') };
-    const lignes = rows.slice(1).map(r => ({
-      designation: (r[idx.designation] || '').trim(),
-      montantPrevu: miniParseNumberFR(r[idx.montantPrevu]),
-      montantRealise: miniParseNumberFR(r[idx.montantRealise]),
-    })).filter(l => l.designation && l.montantPrevu > 0);
-    const totalPrevu = lignes.reduce((s, l) => s + l.montantPrevu, 0);
-    const totalRealise = lignes.reduce((s, l) => s + l.montantRealise, 0);
-    return [{ nom: chantier.nom, pct: totalPrevu > 0 ? (totalRealise / totalPrevu) * 100 : 0 }];
-  }
-
-  async function miniLoadJournal(chantier) {
-    const rows = await miniFetchCSV(chantier.csvUrl);
-    const header = rows[0].map(h => h.trim());
-    const idx = { tauxGlobal: header.indexOf('Taux_Global') };
-    const r = rows[1];
-    return [{ nom: chantier.nom, pct: miniParseNumberFR(r[idx.tauxGlobal]) }];
-  }
-
-  async function miniLoadPortfolio(chantier) {
-    const rows = await miniFetchCSV(chantier.csvUrl);
-    const header = rows[0].map(h => h.trim());
-    const idx = { nom: header.indexOf('Nom'), montantPrevu: header.indexOf('Montant_Prevu'), montantRealise: header.indexOf('Montant_Realise') };
-    return rows.slice(1).map(r => {
-      const totalPrevu = miniParseNumberFR(r[idx.montantPrevu]);
-      const totalRealise = miniParseNumberFR(r[idx.montantRealise]);
-      return { nom: (r[idx.nom] || '').trim(), pct: totalPrevu > 0 ? Math.min(100, (totalRealise / totalPrevu) * 100) : 0 };
-    }).filter(c => c.nom);
-  }
-
-  async function miniLoadKPI(chantier) {
-    const rows = await miniFetchCSV(chantier.csvUrl);
-    const r = rows[chantier.cell.row] || [];
-    const totalPrevu = miniParseNumberFR(r[chantier.cell.prevuCol]);
-    const totalRealise = miniParseNumberFR(r[chantier.cell.realiseCol]);
-    return [{ nom: chantier.nom, pct: totalPrevu > 0 ? Math.min(100, (totalRealise / totalPrevu) * 100) : 0 }];
-  }
-
-  // ─────────────────────────────────────────────
-  // Chargement "electrique" — même formule que Avancement_des_Chantiers.html :
-  // jauge globale = moyenne (% délai consommé calculé depuis Suivi CPM) et
-  // (% consommation lu dans la case "AVANCEMENT GLOBAL" du tableau de bord du sheet).
-  // Fonctions préfixées "mini" et volontairement autonomes (pas de dépendance sur les
-  // constantes CPM_CSV_URL déclarées plus bas, pour éviter tout souci d'ordre d'exécution).
-  // ─────────────────────────────────────────────
-  function miniNormalize(str) {
-    return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  }
-  function miniParseFrDate(str) {
-    if (!str) return null;
-    const parts = str.trim().split('/');
-    if (parts.length !== 3) return null;
-    const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
-    if (!d || !m || !y || y < 1990) return null;
-    const dt = new Date(y, m - 1, d);
-    return isNaN(dt.getTime()) ? null : dt;
-  }
-  const MINI_CPM_CSV_URL = "https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/export?format=csv&gid=1963142469";
-  const MINI_COL_CPM = { STATUT: 8, N_CONTRAT: 13, DATE_ODS: 16, DUREE_CONTRAT: 17, ECHEANCE: 18 };
-
-  async function miniLoadElectrique(chantier) {
-    const rows = await miniFetchCSV(chantier.csvUrl);
-    const headerRowIdx = rows.findIndex(r => r.some(cell => miniNormalize(cell).includes('avancement global')));
-    const headerRow = headerRowIdx !== -1 ? rows[headerRowIdx] : [];
-    const valueRow = headerRowIdx !== -1 ? (rows[headerRowIdx + 1] || []) : [];
-    const colAvancement = headerRow.findIndex(c => miniNormalize(c).includes('avancement global'));
-    const pctConso = colAvancement !== -1 ? miniParseNumberFR(valueRow[colAvancement]) : 0;
-
-    let pctDelai = null;
-    try {
-      const cpmRows = await miniFetchCSV(MINI_CPM_CSV_URL);
-      let headerIdx = cpmRows.findIndex(r => r.some(cell => miniNormalize(cell) === 'statut'));
-      if (headerIdx === -1) headerIdx = 1;
-      const data = cpmRows.slice(headerIdx + 1);
-      const targetKey = miniNormalize(chantier.nContrat).replace(/[^a-z0-9]/g, '');
-      const match = data.find(r => miniNormalize(r[MINI_COL_CPM.N_CONTRAT] || '').replace(/[^a-z0-9]/g, '') === targetKey);
-      if (match) {
-        const dateODS = miniParseFrDate(match[MINI_COL_CPM.DATE_ODS]);
-        const dureeMois = parseFloat((match[MINI_COL_CPM.DUREE_CONTRAT] || '').toString().replace(',', '.')) || null;
-        let echeanceDate = miniParseFrDate(match[MINI_COL_CPM.ECHEANCE]);
-        if (!echeanceDate && dateODS && dureeMois) {
-          echeanceDate = new Date(dateODS);
-          echeanceDate.setMonth(echeanceDate.getMonth() + Math.round(dureeMois));
-        }
-        if (dateODS && echeanceDate) {
-          const today = new Date(); today.setHours(0, 0, 0, 0);
-          const totalJours = Math.round((echeanceDate - dateODS) / 86400000);
-          const joursRestants = Math.round((echeanceDate - today) / 86400000);
-          if (totalJours > 0) {
-            pctDelai = Math.max(0, Math.min(100, Math.round(((totalJours - joursRestants) / totalJours) * 100)));
-          }
-        }
-      }
-    } catch (e) { /* Suivi CPM injoignable -> jauge de consommation seule */ }
-
-    const pctGlobal = pctDelai !== null ? (pctConso + pctDelai) / 2 : pctConso;
-    return [{ nom: chantier.nom, pct: pctGlobal }];
+  async function getChantiersStatsFromSource() {
+    const res = await fetch('Avancement_des_Chantiers.html');
+    if (!res.ok) throw new Error('Avancement_des_Chantiers.html introuvable (' + res.status + ')');
+    const html = await res.text();
+    const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
+    if (!scriptMatch) throw new Error('script introuvable dans Avancement_des_Chantiers.html');
+    // On retire l'auto-lancement `init();` en toute fin de script : ici on ne veut que les
+    // fonctions/données (CHANTIERS, computeStats, ...), pas le rendu HTML sur le DOM de cette page.
+    const code = scriptMatch[1].replace(/\ninit\(\);\s*$/, '');
+    // new Function crée une portée isolée : les const/function du fichier source (CHANTIERS,
+    // fetchCSV, COL_CPM, computeStats, ...) ne polluent pas le scope de index.html.
+    const getComputeStats = new Function(code + '\nreturn computeStats;');
+    const computeStats = getComputeStats();
+    return computeStats();
   }
 
   async function initChantiersMini() {
     try {
-      const active = CHANTIERS_MINI.filter(c => c.csvUrl && c.csvUrl.trim() !== '');
-      const loaded = await Promise.all(active.map(c => {
-        if (c.type === 'journal') return miniLoadJournal(c);
-        if (c.type === 'portfolio') return miniLoadPortfolio(c);
-        if (c.type === 'kpi') return miniLoadKPI(c);
-        if (c.type === 'electrique') return miniLoadElectrique(c);
-        return miniLoadBOQ(c);
-      }));
-      const results = loaded.flat();
+      const { globalResults } = await getChantiersStatsFromSource();
 
-      const total = results.length;
-      const bienAvance = results.filter(r => r.pct >= 70).length;
-      const enCours = results.filter(r => r.pct >= 20 && r.pct < 70).length;
-      const demarrage = results.filter(r => r.pct < 20).length;
+      const total = globalResults.length;
+      const bienAvance = globalResults.filter(r => r.pct >= 70).length;
+      const enCours = globalResults.filter(r => r.pct >= 20 && r.pct < 70).length;
+      const demarrage = globalResults.filter(r => r.pct < 20).length;
 
       const pct = n => total > 0 ? Math.round((n / total) * 100) + '% du total' : '—';
 
