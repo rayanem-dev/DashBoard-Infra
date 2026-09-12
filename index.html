@@ -784,7 +784,7 @@
       <div class="cat-icon" style="background:#E8F5E9;">🚛</div>
       <span class="cat-title">Logistique, Stocks & Sous-traitants</span>
       <div class="cat-line" style="background:linear-gradient(90deg,#2E7D32,#66BB6A);"></div>
-      <span class="cat-count" style="background:#E8F5E9;color:#2E7D32;">8 apps</span>
+      <span class="cat-count" style="background:#E8F5E9;color:#2E7D32;">9 apps</span>
     </div>
     <div class="cards-grid">
 
@@ -851,6 +851,14 @@
         <div class="card-top"><span class="card-emoji">🔩</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
         <h3>Commande de Pièces – Service Électromécanique</h3>
         <p>Application de commande de pièces détachées pour le service Électromécanique, avec suivi des demandes et de leur traitement.</p>
+        <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
+      </a>
+
+      <a class="card" href="https://script.google.com/macros/s/AKfycbzdT9ccbrUmHZfTHCdFC09ZFG-KX3TR95qvpe5fyuIjE_tSMe-1hVEQDKknD629KHoU/exec" target="_blank"
+         style="--cat-color-a:#2E7D32;--cat-color-b:#66BB6A;">
+        <div class="card-top"><span class="card-emoji">🚚</span><div class="badges"><span class="badge badge-new">Nouveau</span></div></div>
+        <h3>Générateur Requête Transport</h3>
+        <p>Application de génération des requêtes de transport pour la division Infrastructure.</p>
         <div class="card-footer"><span class="open-btn">Ouvrir <span class="open-arrow">→</span></span></div>
       </a>
 
@@ -4654,6 +4662,10 @@
     { nom: "Terrassement RNS (36 mois)", type: "kpi",
       csvUrl: "https://docs.google.com/spreadsheets/d/1_bL3vv2dtYJWmvs0ZqZqq2agACVEZdAr14UP2unoUhM/export?format=csv&gid=2117456852",
       cell: { row: 3, prevuCol: 1, realiseCol: 4 } },
+
+    // Service Électromécanique
+    { nom: "Maintenance des Installations Électriques", type: "electrique", nContrat: "30.INFRA.24",
+      csvUrl: "https://docs.google.com/spreadsheets/d/1Pk0n5UNT8yf5A7yZNe8rwHyevn7XHsB4/export?format=csv&gid=627222972" },
   ];
 
   function miniParseCSV(text) {
@@ -4733,6 +4745,67 @@
     return [{ nom: chantier.nom, pct: totalPrevu > 0 ? Math.min(100, (totalRealise / totalPrevu) * 100) : 0 }];
   }
 
+  // ─────────────────────────────────────────────
+  // Chargement "electrique" — même formule que Avancement_des_Chantiers.html :
+  // jauge globale = moyenne (% délai consommé calculé depuis Suivi CPM) et
+  // (% consommation lu dans la case "AVANCEMENT GLOBAL" du tableau de bord du sheet).
+  // Fonctions préfixées "mini" et volontairement autonomes (pas de dépendance sur les
+  // constantes CPM_CSV_URL déclarées plus bas, pour éviter tout souci d'ordre d'exécution).
+  // ─────────────────────────────────────────────
+  function miniNormalize(str) {
+    return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  function miniParseFrDate(str) {
+    if (!str) return null;
+    const parts = str.trim().split('/');
+    if (parts.length !== 3) return null;
+    const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+    if (!d || !m || !y || y < 1990) return null;
+    const dt = new Date(y, m - 1, d);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  const MINI_CPM_CSV_URL = "https://docs.google.com/spreadsheets/d/1QFoEEsoosl3vGdwyAlzmQbHt3Vv76llfWfrO-prmAuY/export?format=csv&gid=1963142469";
+  const MINI_COL_CPM = { STATUT: 8, N_CONTRAT: 13, DATE_ODS: 16, DUREE_CONTRAT: 17, ECHEANCE: 18 };
+
+  async function miniLoadElectrique(chantier) {
+    const rows = await miniFetchCSV(chantier.csvUrl);
+    const headerRowIdx = rows.findIndex(r => r.some(cell => miniNormalize(cell).includes('avancement global')));
+    const headerRow = headerRowIdx !== -1 ? rows[headerRowIdx] : [];
+    const valueRow = headerRowIdx !== -1 ? (rows[headerRowIdx + 1] || []) : [];
+    const colAvancement = headerRow.findIndex(c => miniNormalize(c).includes('avancement global'));
+    const pctConso = colAvancement !== -1 ? miniParseNumberFR(valueRow[colAvancement]) : 0;
+
+    let pctDelai = null;
+    try {
+      const cpmRows = await miniFetchCSV(MINI_CPM_CSV_URL);
+      let headerIdx = cpmRows.findIndex(r => r.some(cell => miniNormalize(cell) === 'statut'));
+      if (headerIdx === -1) headerIdx = 1;
+      const data = cpmRows.slice(headerIdx + 1);
+      const targetKey = miniNormalize(chantier.nContrat).replace(/[^a-z0-9]/g, '');
+      const match = data.find(r => miniNormalize(r[MINI_COL_CPM.N_CONTRAT] || '').replace(/[^a-z0-9]/g, '') === targetKey);
+      if (match) {
+        const dateODS = miniParseFrDate(match[MINI_COL_CPM.DATE_ODS]);
+        const dureeMois = parseFloat((match[MINI_COL_CPM.DUREE_CONTRAT] || '').toString().replace(',', '.')) || null;
+        let echeanceDate = miniParseFrDate(match[MINI_COL_CPM.ECHEANCE]);
+        if (!echeanceDate && dateODS && dureeMois) {
+          echeanceDate = new Date(dateODS);
+          echeanceDate.setMonth(echeanceDate.getMonth() + Math.round(dureeMois));
+        }
+        if (dateODS && echeanceDate) {
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          const totalJours = Math.round((echeanceDate - dateODS) / 86400000);
+          const joursRestants = Math.round((echeanceDate - today) / 86400000);
+          if (totalJours > 0) {
+            pctDelai = Math.max(0, Math.min(100, Math.round(((totalJours - joursRestants) / totalJours) * 100)));
+          }
+        }
+      }
+    } catch (e) { /* Suivi CPM injoignable -> jauge de consommation seule */ }
+
+    const pctGlobal = pctDelai !== null ? (pctConso + pctDelai) / 2 : pctConso;
+    return [{ nom: chantier.nom, pct: pctGlobal }];
+  }
+
   async function initChantiersMini() {
     try {
       const active = CHANTIERS_MINI.filter(c => c.csvUrl && c.csvUrl.trim() !== '');
@@ -4740,6 +4813,7 @@
         if (c.type === 'journal') return miniLoadJournal(c);
         if (c.type === 'portfolio') return miniLoadPortfolio(c);
         if (c.type === 'kpi') return miniLoadKPI(c);
+        if (c.type === 'electrique') return miniLoadElectrique(c);
         return miniLoadBOQ(c);
       }));
       const results = loaded.flat();
@@ -4763,7 +4837,7 @@
       document.getElementById('ch-bar-encours').style.width = (total > 0 ? (enCours / total) * 100 : 0) + '%';
       document.getElementById('ch-bar-demarrage').style.width = (total > 0 ? (demarrage / total) * 100 : 0) + '%';
 
-      document.getElementById('chantiers-sub').textContent = total + ' chantier' + (total > 1 ? 's' : '') + ' actifs suivis en temps réel';
+      document.getElementById('chantiers-sub').textContent = total + ' prestation' + (total > 1 ? 's' : '') + ' suivies en temps réel — Travaux Entretien + Électromécanique';
     } catch (e) {
       document.getElementById('chantiers-sub').textContent = "Données indisponibles pour l'instant";
       document.getElementById('ch-total').textContent = '—';
