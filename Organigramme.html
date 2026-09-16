@@ -76,6 +76,18 @@
   .org-service-entretien details.org-node > summary { border-left:3px solid #4FC3F7; }
   .org-service-electro details.org-node > summary { border-left:3px solid #FFA726; }
   .org-transverse details.org-node > summary { border-left:3px solid #CE93D8; }
+
+  .org-legend { display:flex; flex-wrap:wrap; gap:10px 18px; margin-bottom:18px; padding:12px 16px; background:rgba(255,255,255,0.05); border-radius:12px; }
+  .org-legend .item { display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.8); font-weight:600; }
+  .dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .dot-sonatrach { background:#FFA726; }
+  .dot-acosco { background:#CE93D8; }
+  .dot-gtp { background:#66BB6A; }
+  .dot-etsmessai { background:#4FC3F7; }
+  .dot-globicorp { background:#EF5350; }
+  .dot-etsmehda { background:#FFD54F; }
+  .dot-construction { background:#A1887F; }
+  .org-person { display:inline-flex; align-items:center; gap:6px; }
 </style>
 </head>
 <body>
@@ -108,6 +120,16 @@
     </div>
 
     <div class="org-tree">
+      <div class="org-legend">
+        <span class="item"><span class="dot dot-sonatrach"></span>SONATRACH</span>
+        <span class="item"><span class="dot dot-acosco"></span>ACOSCO</span>
+        <span class="item"><span class="dot dot-gtp"></span>GTP</span>
+        <span class="item"><span class="dot dot-etsmessai"></span>ETS MESSAI (Hydraulique)</span>
+        <span class="item"><span class="dot dot-globicorp"></span>GLOBI CORP (Électricité)</span>
+        <span class="item"><span class="dot dot-etsmehda"></span>ETS MEHDA AMOR (Froid)</span>
+        <span class="item"><span class="dot dot-construction"></span>Autres prestataires Construction</span>
+      </div>
+
       <div class="org-root">
         <div class="title">SONATRACH — DIVISION INFRASTRUCTURES RNS</div>
         <div class="chef">Chef Division : <b>HADJADJ Lamine</b> <span style="opacity:0.6;">(sona12551 · 90856S)</span></div>
@@ -118,7 +140,7 @@
           <summary>🧑‍💼 Cadre Supérieur <span class="arrow">▶</span></summary>
           <div class="org-body">
             <div class="org-people">
-              <span class="org-person"><b>HAMDAOUI Kada</b><span class="tel">81616Q</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>HAMDAOUI Kada</b><span class="tel">81616Q</span></span>
             </div>
           </div>
         </details>
@@ -127,8 +149,8 @@
           <summary>📬 Secrétariat <span class="arrow">▶</span></summary>
           <div class="org-body">
             <div class="org-people">
-              <span class="org-person"><b>SAHEB Abd Erraouf</b><span class="tel">sona12235 · 14627F</span></span>
-              <span class="org-person"><b>MADANI Rayane</b><span class="tel">ACOSCO</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>SAHEB Abd Erraouf</b><span class="tel">sona12235 · 14627F</span></span>
+              <span class="org-person"><span class="dot dot-acosco"></span><b>MADANI Rayane</b></span>
             </div>
           </div>
         </details>
@@ -137,10 +159,10 @@
           <summary>📑 Cellule Passation de Marché <span class="arrow">▶</span></summary>
           <div class="org-body">
             <div class="org-people">
-              <span class="org-person"><b>FEKHAR Abdelmadjid</b><span class="tel">📞 0658578057</span></span>
-              <span class="org-person"><b>BOUAZIZ Hocine</b><span class="tel">📞 0659191322</span></span>
-              <span class="org-person"><b>LAKKAICHI Noureddine</b><span class="tel">📞 0661775887</span></span>
-              <span class="org-person"><b>AZEGGAGH Locif</b><span class="tel">ACOSCO</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>FEKHAR Abdelmadjid</b><span class="tel">📞 0658578057</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>LAKKAICHI Noureddine</b><span class="tel">📞 0661775887</span></span>
+              <span class="org-person"><span class="dot dot-gtp"></span><b>BOUAZIZ Hocine</b><span class="tel">📞 0659191322</span></span>
+              <span class="org-person"><span class="dot dot-acosco"></span><b>AZEGGAGH Locif</b></span>
             </div>
           </div>
         </details>
@@ -149,8 +171,8 @@
           <summary>📐 Architecte <span class="arrow">▶</span></summary>
           <div class="org-body">
             <div class="org-people">
-              <span class="org-person"><b>MOKRANI Miloud</b><span class="tel">sona11850 · 75589D</span></span>
-              <span class="org-person"><b>KRIBIA Mohammed Lamine</b><span class="tel">📞 0676706788</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>MOKRANI Miloud</b><span class="tel">sona11850 · 75589D</span></span>
+              <span class="org-person"><span class="dot dot-acosco"></span><b>KRIBIA Mohamed</b></span>
             </div>
           </div>
         </details>
@@ -159,8 +181,8 @@
           <summary>🧮 Ordonnancement <span class="arrow">▶</span></summary>
           <div class="org-body">
             <div class="org-people">
-              <span class="org-person"><b>ZAOUAI Brahim Sabri</b><span class="tel">sona17193 · 58882W</span></span>
-              <span class="org-person"><b>ZERROUK Sid Ahmed</b><span class="tel">sona12171 · 05224W</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>ZAOUAI Brahim Sabri</b><span class="tel">sona17193 · 58882W</span></span>
+              <span class="org-person"><span class="dot dot-sonatrach"></span><b>ZERROUK Sid Ahmed</b><span class="tel">sona12171 · 05224W</span></span>
             </div>
           </div>
         </details>
@@ -172,33 +194,32 @@
           <div class="org-body">
             <div class="org-sub"><div class="org-sub-label">Chef de service</div>
               <div class="org-people">
-                <span class="org-person"><b>BEN MESSAOUD Elfarouk</b><span class="tel">📞 0670354664</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BEN MESSAOUD Elfarouk</b><span class="tel">📞 0670354664</span></span>
               </div>
             </div>
-            <div class="org-sub"><div class="org-sub-label">Inspecteurs Prestations Travaux</div>
+            <div class="org-sub"><div class="org-sub-label">Inspecteurs Prestations Construction</div>
               <div class="org-people">
-                <span class="org-person"><b>DAMECHE Mohamed Reda</b><span class="tel">sona12007 · 91050C</span></span>
-                <span class="org-person"><b>HAMMAD Mohammed Yacine</b><span class="tel">📞 0676332901</span></span>
-                <span class="org-person"><b>LEMSADFA Mohamed</b><span class="tel">📞 0668571595</span></span>
-                <span class="org-person"><b>ADNAN Abdel Moumen</b><span class="tel">ACOSCO</span></span>
-                <span class="org-person"><b>BELHEIN Tadjeddine</b><span class="tel">ACOSCO</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>DAMECHE Mohamed Reda</b><span class="tel">sona12007 · 91050C</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>HAMMAD Mohammed Yacine</b><span class="tel">📞 0676332901</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>LEMSADFA Mohamed</b><span class="tel">📞 0668571595</span></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>ADNAN Abdel Moumen</b></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>BELHEIN Tadjeddine</b></span>
               </div>
             </div>
             <div class="org-sub"><div class="org-sub-label">Dessinateurs Projeteurs</div>
               <div class="org-people">
-                <span class="org-person"><b>MOKRANI Miloud</b><span class="tel">sona11850 · 75589D</span></span>
-                <span class="org-person"><b>KRIBIA Mohamed</b><span class="tel">ACOSCO</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>MOKRANI Miloud</b><span class="tel">sona11850 · 75589D</span></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>KRIBIA Mohamed</b></span>
               </div>
             </div>
-            <div class="org-sub">
-              <span class="org-prestataire-tag">Superviseurs Prestations Construction (prestataires)</span>
+            <div class="org-sub"><div class="org-sub-label">Superviseurs Prestations Construction</div>
               <div class="org-people">
-                <span class="org-person"><b>CHAREF Kamel</b><span class="tel">ACOSCO</span></span>
-                <span class="org-person"><b>LACHI Choayb</b><span class="tel">ACOSCO</span></span>
-                <span class="org-person"><b>TOUAHRI Abdelatf</b><span class="tel">ACOSCO</span></span>
-                <span class="org-person"><b>BENRITAB Abdesslam</b><span class="tel">📞 0674596060</span></span>
-                <span class="org-person"><b>MALEK Ahmed Amine</b><span class="tel">GTP</span></span>
-                <span class="org-person"><b>ZERROUKI Arezki</b><span class="tel">ACOSCO</span></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>CHAREF Kamel</b></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>LACHI Choayb</b></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>TOUAHRI Abdelatf</b></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>BENRITAB Abdesslam</b><span class="tel">📞 0674596060</span></span>
+                <span class="org-person"><span class="dot dot-gtp"></span><b>MALEK Ahmed Amine</b></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>ZERROUKI Arezki</b></span>
               </div>
             </div>
           </div>
@@ -211,56 +232,53 @@
           <div class="org-body">
             <div class="org-sub"><div class="org-sub-label">Chef de service</div>
               <div class="org-people">
-                <span class="org-person"><b>HAMBLI Mohamed Lamine</b><span class="tel">sona17191 · 58880S</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>HAMBLI Mohamed Lamine</b><span class="tel">sona17191 · 58880S</span></span>
               </div>
             </div>
             <div class="org-sub"><div class="org-sub-label">Ingénieur / Inspecteur</div>
               <div class="org-people">
-                <span class="org-person"><b>BELHIRANE Abdelbari</b><span class="tel">📞 0697731889</span></span>
-                <span class="org-person"><b>OUADAN Mustapha Elamine</b><span class="tel">📞 0661421435</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BELHIRANE Abdelbari</b><span class="tel">📞 0697731889</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>OUADAN Mustapha Elamine</b><span class="tel">📞 0661421435</span></span>
               </div>
             </div>
             <div class="org-sub"><div class="org-sub-label">Superviseurs Prestations Travaux</div>
               <div class="org-people">
-                <span class="org-person"><b>BOUCHIKHI Djelloul</b><span class="tel">📞 0660396138</span></span>
-                <span class="org-person"><b>BOUTI Messaoud</b><span class="tel">📞 0660437206</span></span>
-                <span class="org-person"><b>DERRADJI Abderrazak</b><span class="tel">sona28870 · 77585E</span></span>
-                <span class="org-person"><b>AICHOUCHE Mohamed</b><span class="tel">📞 0660396850</span></span>
-                <span class="org-person"><b>CHAOUI Oussama</b><span class="tel">📞 0666186643</span></span>
-                <span class="org-person"><b>MEZROUA Abdeljalil</b><span class="tel">📞 0660000990</span></span>
-                <span class="org-person"><b>HAMIDI Ahcène</b><span class="tel">📞 0673463897</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BOUCHIKHI Djelloul</b><span class="tel">📞 0660396138</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BOUTI Messaoud</b><span class="tel">📞 0660437206</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>DERRADJI Abderrazak</b><span class="tel">sona28870 · 77585E</span></span>
+                <span class="org-person"><span class="dot dot-gtp"></span><b>AICHOUCHE Mohamed</b><span class="tel">📞 0660396850</span></span>
+                <span class="org-person"><span class="dot dot-gtp"></span><b>CHAOUI Oussama</b><span class="tel">📞 0666186643</span></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>MEZROUA Abdeljalil</b><span class="tel">📞 0660000990</span></span>
+                <span class="org-person"><span class="dot dot-acosco"></span><b>HAMIDI Ahcène</b><span class="tel">📞 0673463897</span></span>
               </div>
             </div>
             <div class="org-sub">
-              <span class="org-prestataire-tag">💧 Sous-section Hydraulique</span>
+              <span class="org-prestataire-tag">💧 Sous-section Hydraulique (cadres Sonatrach)</span>
               <div class="org-people">
-                <span class="org-person"><b>GAMOUR Khouiled</b><span class="tel">📞 0660930702</span></span>
-                <span class="org-person"><b>LAKHDARI Nour Eddine</b><span class="tel">📞 0698810829</span></span>
-                <span class="org-person"><b>KHERFI Mohammed Elwahid</b><span class="tel">📞 0660336935</span></span>
-                <span class="org-person"><b>TIZEGGAGHINE Mustafa</b><span class="tel">sona11576 · 56635E</span></span>
-                <span class="org-person"><b>ARIGUE Imad</b><span class="tel">sona17155 · 58622D</span></span>
-                <span class="org-person"><b>MECHERI Abderrahim</b><span class="tel">📞 0663495799</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>GAMOUR Khouiled</b><span class="tel">📞 0660930702</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>LAKHDARI Nour Eddine</b><span class="tel">📞 0698810829</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>KHERFI Mohammed Elwahid</b><span class="tel">📞 0660336935</span></span>
               </div>
             </div>
             <div class="org-sub">
               <span class="org-prestataire-tag">PRESTATAIRE HYDRAULIQUE — ETS MESSAI</span>
               <div class="org-people">
-                <span class="org-person"><b>ZINET Hichem</b><span class="tel">📞 0658141097</span></span>
-                <span class="org-person"><b>FALI Nadir</b><span class="tel">📞 0699453535</span></span>
-                <span class="org-person"><b>BELDJILALI Azzeddine</b><span class="tel">📞 0647977226</span></span>
-                <span class="org-person"><b>MAKKOUR Yacine</b><span class="tel">📞 0665804414</span></span>
-                <span class="org-person"><b>KOUHEL Akram</b><span class="tel">📞 0660348458</span></span>
-                <span class="org-person"><b>MALEB Azeddine</b><span class="tel">📞 0675977226</span></span>
-                <span class="org-person"><b>LADJEL Abdelkader</b><span class="tel">📞 0658873984</span></span>
-                <span class="org-person"><b>MEHAMDI Abdelkarim</b><span class="tel">📞 0698206354</span></span>
-                <span class="org-person"><b>OUEDN Djamel</b><span class="tel">📞 0675463902</span></span>
-                <span class="org-person"><b>ZITOUNI Lotfi</b><span class="tel">📞 0667677612</span></span>
-                <span class="org-person"><b>DAHDOUH Rebiai</b><span class="tel">📞 0668269243</span></span>
-                <span class="org-person"><b>GHAMMAM Nouas Hamza</b><span class="tel">📞 0666567680</span></span>
-                <span class="org-person"><b>SALEM M Elfoudile</b></span>
-                <span class="org-person"><b>BOUKHANI Mohamed</b></span>
-                <span class="org-person"><b>HOUAM Nacir</b></span>
-                <span class="org-person"><b>CHAGROUNE Smail</b></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>ZINET Hichem</b><span class="tel">📞 0658141097</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>FALI Nadir</b><span class="tel">📞 0699453535</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>BELDJILALI Azzeddine</b><span class="tel">📞 0647977226</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>MAKKOUR Yacine</b><span class="tel">📞 0665804414</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>KOUHEL Akram</b><span class="tel">📞 0660348458</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>MALEB Azeddine</b><span class="tel">📞 0675977226</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>LADJEL Abdelkader</b><span class="tel">📞 0658873984</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>MEHAMDI Abdelkarim</b><span class="tel">📞 0698206354</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>OUEDN Djamel</b><span class="tel">📞 0675463902</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>ZITOUNI Lotfi</b><span class="tel">📞 0667677612</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>DAHDOUH Rebiai</b><span class="tel">📞 0668269243</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>GHAMMAM Nouas Hamza</b><span class="tel">📞 0666567680</span></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>SALEM M Elfoudile</b></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>BOUKHANI Mohamed</b></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>HOUAM Nacir</b></span>
+                <span class="org-person"><span class="dot dot-etsmessai"></span><b>CHAGROUNE Smail</b></span>
               </div>
             </div>
           </div>
@@ -273,66 +291,73 @@
           <div class="org-body">
             <div class="org-sub"><div class="org-sub-label">Chef de service</div>
               <div class="org-people">
-                <span class="org-person"><b>REBAHI Redouane</b><span class="tel">sona12459 · 08273T</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>REBAHI Redouane</b><span class="tel">sona12459 · 08273T</span></span>
               </div>
             </div>
             <div class="org-sub"><div class="org-sub-label">Ingénieurs</div>
               <div class="org-people">
-                <span class="org-person"><b>LAHMAR Mohammed Ryad</b><span class="tel">sona11528 · 33919J</span></span>
-                <span class="org-person"><b>SIGHI Khaled</b><span class="tel">sona29433 · 88710H</span></span>
-                <span class="org-person"><b>MECHIKEL Ismail</b><span class="tel">sona27692 · 71758L</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>LAHMAR Mohammed Ryad</b><span class="tel">sona11528 · 33919J</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>SIGHI Khaled</b><span class="tel">sona29433 · 88710H</span></span>
               </div>
             </div>
-            <div class="org-sub"><div class="org-sub-label">Superviseurs Prestations Travaux</div>
+            <div class="org-sub"><div class="org-sub-label">⚡ Sous-section Électricité (cadres Sonatrach)</div>
               <div class="org-people">
-                <span class="org-person"><b>GUEDDA Ala Eddine</b><span class="tel">📞 0667939876</span></span>
-                <span class="org-person"><b>KHATIRI Mohammed Sadek Elslam</b><span class="tel">sona12485 · 36466H</span></span>
-                <span class="org-person"><b>BAGHDADI Mohamed Rafik</b><span class="tel">📞 0665686766</span></span>
-                <span class="org-person"><b>BOUAFIA Mourad</b><span class="tel">📞 0661245880</span></span>
-                <span class="org-person"><b>DEHBI Abdelhalim</b><span class="tel">sona12320 · 33249L</span></span>
-                <span class="org-person"><b>BOUCHELAGHEM Nedjm Eddine</b><span class="tel">sona27697 · 71756G</span></span>
-                <span class="org-person"><b>SAIDI Mohamed Abderrahmane</b><span class="tel">sona29440 · 78601M</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>ARIGUE Imad</b><span class="tel">sona17155 · 58622D</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>MECHIKEL Ismail</b><span class="tel">sona27692 · 71758L</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>MECHERI Abderrahim</b><span class="tel">📞 0663495799</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>GUEDDA Ala Eddine</b><span class="tel">📞 0667939876</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>KHATIRI Mohammed Sadek Elslam</b><span class="tel">sona12485 · 36466H</span></span>
               </div>
             </div>
             <div class="org-sub">
-              <span class="org-prestataire-tag">GLOBI CORP (Section Électricité)</span>
+              <span class="org-prestataire-tag">GLOBI CORP (Électricité)</span>
               <div class="org-people">
-                <span class="org-person"><b>BAHRI Saddam</b><span class="tel">📞 0656656045</span></span>
-                <span class="org-person"><b>BOUKHETA Omar Farouk</b><span class="tel">📞 0657595929</span></span>
-                <span class="org-person"><b>BOULIFA Nassereddine</b><span class="tel">📞 0658774436</span></span>
-                <span class="org-person"><b>BOUTA Tahar</b><span class="tel">📞 0660450612</span></span>
-                <span class="org-person"><b>BOUZENAG Abbes</b><span class="tel">📞 0655368834</span></span>
-                <span class="org-person"><b>DAHMRI Abderrahmane</b><span class="tel">📞 0673470369</span></span>
-                <span class="org-person"><b>GHATAS Toufik</b><span class="tel">📞 0671997166</span></span>
-                <span class="org-person"><b>HACINI Badredine</b><span class="tel">📞 0668198219</span></span>
-                <span class="org-person"><b>KERCHO Abdelghani</b><span class="tel">📞 0675060130</span></span>
-                <span class="org-person"><b>KHEMGANI Said</b><span class="tel">📞 0660010304</span></span>
-                <span class="org-person"><b>MOUSSAOUI Salim</b><span class="tel">📞 0664114283</span></span>
-                <span class="org-person"><b>TOUSLIHET Abderrazak</b><span class="tel">📞 0668515685</span></span>
-                <span class="org-person"><b>ZEDDAM Bahri</b><span class="tel">📞 0655368834</span></span>
-                <span class="org-person"><b>BELEBBAS Cherf Eddine</b><span class="tel">📞 0662227775</span></span>
-                <span class="org-person"><b>SERIAH BenABDELLAH</b><span class="tel">📞 0675117319</span></span>
-                <span class="org-person"><b>BENMAROUF Mohamed</b><span class="tel">📞 0696172288</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BAHRI Saddam</b><span class="tel">📞 0656656045</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BOUKHETA Omar Farouk</b><span class="tel">📞 0657595929</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BOULIFA Nassereddine</b><span class="tel">📞 0658774436</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BOUTA Tahar</b><span class="tel">📞 0660450612</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BOUZENAG Abbes</b><span class="tel">📞 0655368834</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>DAHMRI Abderrahmane</b><span class="tel">📞 0673470369</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>GHATAS Toufik</b><span class="tel">📞 0671997166</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>HACINI Badredine</b><span class="tel">📞 0668198219</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>KERCHO Abdelghani</b><span class="tel">📞 0675060130</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>KHEMGANI Said</b><span class="tel">📞 0660010304</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>MOUSSAOUI Salim</b><span class="tel">📞 0664114283</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>TOUSLIHET Abderrazak</b><span class="tel">📞 0668515685</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>ZEDDAM Bahri</b><span class="tel">📞 0655368834</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BELEBBAS Cherf Eddine</b><span class="tel">📞 0662227775</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>SERIAH BenABDELLAH</b><span class="tel">📞 0675117319</span></span>
+                <span class="org-person"><span class="dot dot-globicorp"></span><b>BENMAROUF Mohamed</b><span class="tel">📞 0696172288</span></span>
+              </div>
+            </div>
+            <div class="org-sub"><div class="org-sub-label">❄️ Sous-section Froid (cadres Sonatrach)</div>
+              <div class="org-people">
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BAGHDADI Mohamed Rafik</b><span class="tel">📞 0665686766</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BOUAFIA Mourad</b><span class="tel">📞 0661245880</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>DEHBI Abdelhalim</b><span class="tel">sona12320 · 33249L</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>BOUCHELAGHEM Nedjm Eddine</b><span class="tel">sona27697 · 71756G</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>SAIDI Mohamed Abderrahmane</b><span class="tel">sona29440 · 78601M</span></span>
+                <span class="org-person"><span class="dot dot-sonatrach"></span><b>TIZEGGAGHINE Mustafa</b><span class="tel">sona11576 · 56635E</span></span>
               </div>
             </div>
             <div class="org-sub">
-              <span class="org-prestataire-tag">ETS MEHDA AMOR (Section Froid)</span>
+              <span class="org-prestataire-tag">ETS MEHDA AMOR (Froid)</span>
               <div class="org-people">
-                <span class="org-person"><b>GOMRES Mohamed</b><span class="tel">📞 0673927995</span></span>
-                <span class="org-person"><b>TERAA Younes</b><span class="tel">📞 0696469227</span></span>
-                <span class="org-person"><b>AD Yasser</b><span class="tel">📞 0666265558</span></span>
-                <span class="org-person"><b>AISSANI Med Lamine</b><span class="tel">📞 0665734752</span></span>
-                <span class="org-person"><b>MOULAY Nadjib</b><span class="tel">📞 0662422330</span></span>
-                <span class="org-person"><b>GHETAS Salah</b><span class="tel">📞 0674465339</span></span>
-                <span class="org-person"><b>GUERROUT Farid</b><span class="tel">📞 0671049595</span></span>
-                <span class="org-person"><b>BENARIB Yacine</b><span class="tel">📞 0669632749</span></span>
-                <span class="org-person"><b>BOUCHETAL Amine</b><span class="tel">📞 0671215097</span></span>
-                <span class="org-person"><b>BOUDJRADA Adnane</b><span class="tel">📞 0671629288</span></span>
-                <span class="org-person"><b>KHEMIS Hocine</b><span class="tel">📞 0698400039</span></span>
-                <span class="org-person"><b>MAZOUZ Ayoub</b></span>
-                <span class="org-person"><b>KIRD Mohamed</b></span>
-                <span class="org-person"><b>BEN SOLTANE Adel</b></span>
-                <span class="org-person"><b>KAROUT Farid</b></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>GOMRES Mohamed</b><span class="tel">📞 0673927995</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>TERAA Younes</b><span class="tel">📞 0696469227</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>AD Yasser</b><span class="tel">📞 0666265558</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>AISSANI Med Lamine</b><span class="tel">📞 0665734752</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>MOULAY Nadjib</b><span class="tel">📞 0662422330</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>GHETAS Salah</b><span class="tel">📞 0674465339</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>GUERROUT Farid</b><span class="tel">📞 0671049595</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>BENARIB Yacine</b><span class="tel">📞 0669632749</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>BOUCHETAL Amine</b><span class="tel">📞 0671215097</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>BOUDJRADA Adnane</b><span class="tel">📞 0671629288</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>KHEMIS Hocine</b><span class="tel">📞 0698400039</span></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>MAZOUZ Ayoub</b></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>KIRD Mohamed</b></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>BEN SOLTANE Adel</b></span>
+                <span class="org-person"><span class="dot dot-etsmehda"></span><b>KAROUT Farid</b></span>
               </div>
             </div>
           </div>
