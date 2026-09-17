@@ -134,6 +134,119 @@
     background: linear-gradient(90deg, var(--orange-dark), var(--orange-main), var(--orange-light), #FFBA08);
   }
 
+  /* ── CHANGELOG BANNER ── */
+  .changelog-banner {
+    max-width: 1400px;
+    margin: 18px auto 0;
+    padding: 0 32px;
+  }
+
+  .changelog-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 18px;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+
+  .changelog-bar:hover { box-shadow: var(--shadow-hover); }
+
+  .changelog-icon { font-size: 17px; }
+
+  .changelog-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .changelog-badge-new {
+    background: var(--badge-new);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  .changelog-chevron {
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .changelog-banner.open .changelog-chevron { transform: rotate(180deg); }
+
+  .changelog-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    background: white;
+    border-radius: 0 0 14px 14px;
+    border: 1.5px solid var(--border);
+    border-top: none;
+    margin-top: -2px;
+  }
+
+  .changelog-banner.open .changelog-panel {
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  #changelog-list { padding: 4px 18px 14px; }
+
+  .changelog-entry {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .changelog-entry:last-child { border-bottom: none; }
+
+  .changelog-entry-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .changelog-entry-date {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--orange-main);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .changelog-entry-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .changelog-entry ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .changelog-entry li {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
   /* ── CPM STATUS PANEL ── */
   .cpm-panel {
     max-width: 1400px;
@@ -690,6 +803,18 @@
   </div>
   <div class="orange-stripe"></div>
 </header>
+
+<div class="changelog-banner" id="changelog-banner">
+  <div class="changelog-bar" id="changelog-bar">
+    <span class="changelog-icon">🔔</span>
+    <span class="changelog-text" id="changelog-latest">Chargement des dernières modifications…</span>
+    <span class="changelog-badge-new" id="changelog-badge" style="display:none;">Nouveau</span>
+    <span class="changelog-chevron" id="changelog-chevron">▾</span>
+  </div>
+  <div class="changelog-panel" id="changelog-panel">
+    <div id="changelog-list"></div>
+  </div>
+</div>
 
 <div class="search-area">
   <div class="search-box">
@@ -4716,6 +4841,81 @@
     }
   }
   initCpmPanel();
+
+  // ─────────────────────────────────────────────
+  // Bande "Dernières modifications" — lit changelog.json (même dossier).
+  // Version 1 : pas de push, juste un badge "Nouveau" tant que l'utilisateur
+  // n'a pas déplié la bande depuis la dernière entrée ajoutée.
+  // Le fichier changelog.json est la brique qu'une future appli (Android/iOS)
+  // pourra interroger périodiquement pour déclencher une notification push
+  // quand une nouvelle entrée apparaît.
+  // ─────────────────────────────────────────────
+  const CHANGELOG_SEEN_KEY = 'rns_changelog_last_seen_id';
+
+  function changelogFormatDate(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  function toggleChangelogBanner() {
+    const banner = document.getElementById('changelog-banner');
+    const wasOpen = banner.classList.contains('open');
+    banner.classList.toggle('open', !wasOpen);
+    if (!wasOpen) {
+      // L'utilisateur vient de déplier : on marque la dernière entrée comme vue.
+      const latestId = banner.dataset.latestId;
+      if (latestId) {
+        localStorage.setItem(CHANGELOG_SEEN_KEY, latestId);
+        document.getElementById('changelog-badge').style.display = 'none';
+      }
+    }
+  }
+
+  async function initChangelogBanner() {
+    const textEl = document.getElementById('changelog-latest');
+    const badgeEl = document.getElementById('changelog-badge');
+    const listEl = document.getElementById('changelog-list');
+    const barEl = document.getElementById('changelog-bar');
+    const bannerEl = document.getElementById('changelog-banner');
+
+    barEl.addEventListener('click', toggleChangelogBanner);
+
+    try {
+      const res = await fetch('changelog.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('changelog.json introuvable (' + res.status + ')');
+      const entries = await res.json();
+      if (!Array.isArray(entries) || entries.length === 0) throw new Error('changelog vide');
+
+      // Tri décroissant par date (au cas où le fichier n'est pas déjà ordonné).
+      entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+      const latest = entries[0];
+      bannerEl.dataset.latestId = latest.id;
+
+      textEl.textContent = 'Dernière mise à jour (' + changelogFormatDate(latest.date) + ') — ' + latest.title;
+
+      const lastSeenId = localStorage.getItem(CHANGELOG_SEEN_KEY);
+      if (lastSeenId !== latest.id) {
+        badgeEl.style.display = '';
+      }
+
+      listEl.innerHTML = entries.slice(0, 15).map(entry => {
+        const items = (entry.changes || []).map(c => '<li>' + c + '</li>').join('');
+        return '<div class="changelog-entry">' +
+          '<div class="changelog-entry-head">' +
+            '<span class="changelog-entry-date">' + changelogFormatDate(entry.date) + '</span>' +
+            '<span class="changelog-entry-title">' + entry.title + '</span>' +
+          '</div>' +
+          '<ul>' + items + '</ul>' +
+        '</div>';
+      }).join('');
+    } catch (e) {
+      textEl.textContent = "Historique des modifications indisponible pour l'instant";
+      badgeEl.style.display = 'none';
+    }
+  }
+  initChangelogBanner();
 </script>
 
 </body>
