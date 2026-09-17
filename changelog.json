@@ -1,0 +1,12 @@
+[
+  {
+    "id": "2026-09-17-01",
+    "date": "2026-09-17",
+    "title": "Ajout de la dotation et nettoyage de la page d'accueil",
+    "changes": [
+      "Ajout de l'application « Dotation Vivres & Eau Minérale » dans la catégorie Logistique & Stocks",
+      "Retrait de la bande « Organigramme Interactif » pleine largeur au-dessus des filtres (l'accès à l'organigramme reste disponible via son card dans RH & Personnel)",
+      "Ajout de cette bande de suivi des modifications"
+    ]
+  }
+]
