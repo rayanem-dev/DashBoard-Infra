@@ -4,6 +4,17 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Tableau de Bord – Division Infrastructure RNS</title>
+
+<!-- ── PWA : installation sur écran d'accueil ── -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E85D04">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Infra RNS">
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -245,6 +256,69 @@
     font-size: 12.5px;
     color: var(--text-muted);
     line-height: 1.5;
+  }
+
+  .install-banner {
+    max-width: 1400px;
+    margin: 12px auto 0;
+    padding: 14px 22px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, var(--orange-dark) 0%, var(--orange-main) 60%, var(--orange-light) 100%);
+    border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(232,93,4,0.25);
+  }
+
+  .install-banner { width: calc(100% - 64px); }
+
+  .install-icon { font-size: 24px; flex-shrink: 0; }
+
+  .install-text { flex: 1; min-width: 0; }
+
+  .install-title {
+    color: white;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+
+  .install-sub {
+    color: rgba(255,255,255,0.85);
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+
+  .install-btn {
+    background: white;
+    color: var(--orange-main);
+    border: none;
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .install-btn:hover { background: rgba(255,255,255,0.9); }
+
+  .install-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.8);
+    font-size: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 4px;
+  }
+
+  .install-close:hover { color: white; }
+
+  @media (max-width: 640px) {
+    .install-sub { display: none; }
   }
 
   /* ── CPM STATUS PANEL ── */
@@ -814,6 +888,16 @@
   <div class="changelog-panel" id="changelog-panel">
     <div id="changelog-list"></div>
   </div>
+</div>
+
+<div class="install-banner" id="install-banner" style="display:none;">
+  <span class="install-icon">📲</span>
+  <div class="install-text">
+    <div class="install-title" id="install-title">Installez cette page sur votre écran d'accueil</div>
+    <div class="install-sub" id="install-sub">Accès plus rapide, en plein écran, comme une vraie application.</div>
+  </div>
+  <button class="install-btn" id="install-btn">Installer</button>
+  <button class="install-close" id="install-close" aria-label="Fermer">✕</button>
 </div>
 
 <div class="search-area">
@@ -4916,6 +5000,87 @@
     }
   }
   initChangelogBanner();
+
+  // ─────────────────────────────────────────────
+  // Invite d'installation sur écran d'accueil (PWA)
+  // ─────────────────────────────────────────────
+  const INSTALL_DISMISS_KEY = 'rns_install_banner_dismissed_at';
+  const INSTALL_SNOOZE_DAYS = 14; // si fermée, on ne la remontre pas avant 14 jours
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true; // iOS Safari
+  }
+
+  function isDismissedRecently() {
+    const raw = localStorage.getItem(INSTALL_DISMISS_KEY);
+    if (!raw) return false;
+    const elapsedDays = (Date.now() - Number(raw)) / (1000 * 60 * 60 * 24);
+    return elapsedDays < INSTALL_SNOOZE_DAYS;
+  }
+
+  function showInstallBanner(mode) {
+    const banner = document.getElementById('install-banner');
+    const titleEl = document.getElementById('install-title');
+    const subEl = document.getElementById('install-sub');
+    const btnEl = document.getElementById('install-btn');
+
+    if (mode === 'ios') {
+      titleEl.textContent = "Installez cette page sur votre écran d'accueil";
+      subEl.textContent = "Appuyez sur Partager (⬆️) puis « Sur l'écran d'accueil ».";
+      btnEl.style.display = 'none';
+    } else {
+      titleEl.textContent = "Installez cette page sur votre écran d'accueil";
+      subEl.textContent = "Accès plus rapide, en plein écran, comme une vraie application.";
+      btnEl.style.display = '';
+    }
+    banner.style.display = 'flex';
+  }
+
+  function initInstallBanner() {
+    if (isStandalone() || isDismissedRecently()) return;
+
+    document.getElementById('install-close').addEventListener('click', () => {
+      localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
+      document.getElementById('install-banner').style.display = 'none';
+    });
+
+    const ua = window.navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+    if (isIOS) {
+      // Safari iOS n'a pas d'API d'installation : on affiche juste l'instruction.
+      showInstallBanner('ios');
+      return;
+    }
+
+    // Android / Chrome / Edge : on attend l'évènement natif du navigateur.
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      showInstallBanner('android');
+    });
+
+    document.getElementById('install-btn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('install-banner').style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('install-banner').style.display = 'none';
+    });
+  }
+  initInstallBanner();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 </script>
 
 </body>
